@@ -1,3 +1,7 @@
+## GitHub deposu (29 Eylül 2026)
+
+Site git'e alındı ve https://github.com/kayautku/ros-amr-wiki adresine gönderildi (SSH, `main` dalı; commit kimliği depo-yerel: kayautku / kayautku08@gmail.com). Değişikliklerden sonra: `git add -A && git commit -m "..." && git push`. GitHub Pages istenirse: Settings → Pages → main / (root).
+
 ## ~/.bashrc açıklaması netleştirildi (29 Eylül 2026)
 
 `yapi-ve-araclar` "Workspace kurma" ve `baslarken` 3. adım: `.bashrc`'ye ekleme artık `echo ... >> ~/.bashrc` + `source ~/.bashrc` komutuyla gösteriliyor; `.bashrc`'nin ne olduğu, `>>`/`>` farkı, `tail -n 3` ile kontrol, satır sırası (önce /opt/ros, sonra workspace), ilk `catkin_make`'ten sonra ekleme, göreli/tam yol farkı ve çift eklenme uyarısı eklendi. Build temiz (19 sayfa, 58 bölüm), sayfa headless Chrome'da kontrol edildi. claude.ai yayını henüz güncellenmedi.
