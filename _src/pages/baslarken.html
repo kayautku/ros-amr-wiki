@@ -1,0 +1,55 @@
+<section id="kurulum">
+<h2>Kurulum ve ortam</h2>
+<p>Bu dökümandaki komutlar <strong>Ubuntu 20.04 + ROS 1 Noetic</strong> içindir. Noetic, Ubuntu 20.04'ün (Focal) resmî ROS sürümüdür; ROS'un hedef platform belgesi (REP-3) ayrıca Debian Buster ve Fedora 32'yi "önerilen" platform olarak listeler; ancak hazır (apt) paketler yalnızca Ubuntu 20.04 için sürdürüldü (Debian Buster için Eylül 2022'ye kadar, Fedora için hiç yayınlanmadı). Başka bir Ubuntu sürümünde doğrudan kurulmaz (Docker ile denenebilir).</p>
+<h3>1. ROS'u kur</h3>
+<p>Depo ve anahtar ekleme adımları sürüme göre değiştiği için güncel hali için <code>wiki.ros.org/noetic/Installation/Ubuntu</code> sayfasını izle. Deponun eklenmesinden sonra:</p>
+<div class="term"><div class="th"><span>Terminal</span><span>ROS + Gazebo + araçlar</span></div><pre>sudo apt update
+sudo apt install ros-noetic-desktop-full
+sudo apt install python3-rosdep python3-rosinstall python3-rosinstall-generator \
+  python3-wstool build-essential
+sudo rosdep init
+rosdep update                      # sudo ile ÇALIŞTIRMA</pre></div>
+<p>Yukarıdaki iki paket satırı resmî kurulum sayfasındakidir. <code>python3-catkin-tools</code> ise yalnızca <code>catkin build</code> kullanmak istersen gerekir (bkz. <a href="#catkin">Paket ve catkin</a>).</p>
+<h3>2. Bu dökümanda kullanılan ek paketler</h3>
+<div class="term"><div class="th"><span>Terminal</span><span>navigasyon, SLAM, komut yönetimi</span></div><pre>sudo apt install ros-noetic-navigation ros-noetic-gmapping \
+  ros-noetic-teb-local-planner ros-noetic-twist-mux \
+  ros-noetic-robot-localization ros-noetic-teleop-twist-keyboard \
+  ros-noetic-ira-laser-tools ros-noetic-actionlib-tools \
+  liburdfdom-tools python3-opencv</pre></div>
+<p>Ek paketlerin ne için gerektiği: <code>ira-laser-tools</code> birden çok lidarı birleştirir, <code>actionlib-tools</code> <code>axclient.py</code> aracını içerir, <code>liburdfdom-tools</code> <code>check_urdf</code> ve <code>urdf_to_graphiz</code> araçlarını içerir, <code>python3-opencv</code> görüntü işleme (docking) içindir. Durum makinesi kütüphanesi SMACH (<code>smach</code>, <code>smach_ros</code>) ve RViz, <code>rqt</code> araçları, Gazebo, <code>xacro</code> zaten <code>desktop-full</code> ile gelir. Durum makinesini canlı izlemek için <code>ros-noetic-smach-viewer</code> isteğe bağlıdır.</p>
+<h3>3. Ortamı her terminalde hazırla</h3>
+<p>ROS komutları (<code>roscore</code>, <code>rosrun</code> …) ancak <em>ortam kaynak dosyası</em> yüklendiğinde çalışır. <code>source</code> komutu yalnızca yazıldığı terminal için geçerlidir; terminali kapatınca etkisi gider. Bunu her seferinde elle yazmamak için satırı <code>~/.bashrc</code>'ye ekle. <code>~/.bashrc</code>, her yeni terminal açıldığında kendiliğinden çalışan dosyadır.</p>
+<div class="term"><div class="th"><span>Terminal</span><span>bir kez çalıştır</span></div><pre>echo "source /opt/ros/noetic/setup.bash" &gt;&gt; ~/.bashrc
+source ~/.bashrc</pre></div>
+<p>İlk satır, tırnak içindeki satırı dosyanın sonuna ekler. <code>&gt;&gt;</code> dosyanın sonuna ekler, tek <code>&gt;</code> ise dosyanın tamamını siler ve yerine bu satırı yazar; iki ok olduğundan emin ol. İkinci satır, değişikliği açık olan terminale de uygular (yeni terminallerde gerek yok). Komutu bir kez çalıştırman yeterli.</p>
+<div class="call try"><b>Dene: her şey kurulu mu?</b>
+<p>Yeni bir terminalde <code>roscore</code> yaz; "started core service [/rosout]" satırını görürsün. Başka bir terminalde <code>rosrun turtlesim turtlesim_node</code> ve üçüncüsünde <code>rosrun turtlesim turtle_teleop_key</code>. Ok tuşlarıyla kaplumbağa hareket ediyorsa kurulum tamamdır.</p></div>
+</section>
+
+<section id="ros-nedir">
+<h2>ROS nedir?</h2>
+<p><strong>ROS</strong> (Robot Operating System) bir işletim sistemi değil; robot yazılımını <em>birbirleriyle konuşan küçük programlara</em> bölmek için bir çerçevedir. Bir program lidarı okur, biri haritada konum bulur, biri yol planlar, biri tekerlekleri sürer. ROS bu programlara birbirini bulma ve mesaj alışverişi yapma yolunu, ayrıca hazır araçları (görselleştirme, kayıt, simülasyon entegrasyonu) verir.</p>
+<p>Dikkat: internette "ROS" ile <strong>ROS 2</strong> sıkça karışık anlatılır. ROS 2'nin komutları (<code>ros2 topic list</code> gibi) burada çalışmaz. Bu dökümandaki komutlar <code>rostopic</code>, <code>roslaunch</code> gibi tek kelimelidir; bir öğretici <code>ros2</code> ile başlıyorsa yanlış sürümdesin.</p>
+<p>Öğrenmen gereken şeylerin çoğu şu altı fikirde toplanıyor:</p>
+<div class="tw"><table>
+<thead><tr><th>Kavram</th><th>Bir cümlede</th><th>AMR'dan örnek</th></tr></thead>
+<tbody>
+<tr><td>Node</td><td>Tek işi olan çalışan bir program</td><td><code>amcl</code>, <code>docking_node</code></td></tr>
+<tr><td>Topic</td><td>Bir "yayın kanalı": biri yazar, herkes dinler</td><td><code>/scan</code>, <code>/cmd_vel</code></td></tr>
+<tr><td>Servis</td><td>Soru-cevap: istek gönder, cevap bekle</td><td><code>/move_base/clear_costmaps</code></td></tr>
+<tr><td>Action</td><td>Uzun süren iş: hedef ver, ilerleme izle, sonucu al</td><td><code>move_base</code>, <code>dock</code></td></tr>
+<tr><td>Parametre</td><td>Ortak ayar defteri</td><td><code>/move_base/controller_frequency</code></td></tr>
+<tr><td>Launch</td><td>Birçok node'u ve ayarı tek komutla başlatan dosya</td><td><code>navigation.launch</code></td></tr>
+</tbody></table></div>
+</section>
+
+<section id="node-master">
+<h2>Node ve Master</h2>
+<p>Bir <strong>node</strong>, ROS'a kendini tanıtmış çalışan bir programdır. Python'da bir satırla olur:</p>
+<pre><code>rospy.init_node("mission_node")</code></pre>
+<p>Node'lar birbirini kendi başlarına bulamaz. Bir <strong>Master</strong> (<code>roscore</code>) telefon rehberi gibi çalışır: "<code>/scan</code> yayınlayan kim?" sorusunu cevaplar, sonra node'lar birbirine doğrudan bağlanır. Master ölürse yeni bağlantılar kurulamaz.</p>
+<div class="call"><b>Master'ı elle başlatmana gerek yok</b>
+<p><code>roslaunch</code> ile bir launch dosyası çalıştırdığında, ayakta bir Master yoksa kendisi başlatır. Tek tek <code>rosrun</code> ile node çalıştıracaksan önce bir terminalde <code>roscore</code> gerekir.</p></div>
+<div class="call try"><b>Dene</b>
+<p>Bir terminalde <code>roscore</code>, ikincisinde <code>rosnode list</code> yaz. Sadece <code>/rosout</code> görürsün: ROS'un kendi log node'u.</p></div>
+</section>

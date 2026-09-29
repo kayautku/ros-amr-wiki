@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>tf ve actionlib referansı · ROS AMR Wiki</title>
+<meta name="description" content="tf, çerçeveler arası dönüşümleri bir ağaç olarak tutan kütüphanedir; tf2 onun yenilenmiş sürümüdür ve Noetic&#x27;te asıl kullanılan budur (eski tf paketi geriye dönük uyumlul">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg cur"><a href="ref-tf-actionlib.html" aria-current="page">tf ve actionlib</a><ul class="sub"><li><a href="#tf-ref">tf / tf2</a></li><li><a href="#actionlib-ref">actionlib</a></li></ul></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">C · Paket referansı</p><h1>tf ve actionlib referansı</h1></header>
+<section id="tf-ref">
+<h2>tf / tf2</h2>
+<p><strong>tf</strong>, çerçeveler arası dönüşümleri bir ağaç olarak tutan kütüphanedir; <strong>tf2</strong> onun yenilenmiş sürümüdür ve Noetic'te asıl kullanılan budur (eski <code>tf</code> paketi geriye dönük uyumluluk için tf2'nin üzerine ince bir katmandır). Kavramsal anlatım için <a href="yapi-ve-araclar.html#tf">TF ve koordinat çerçeveleri</a> bölümüne bak; burada komut satırı araçları ve çerçeve kuralları var.</p>
+<div class="call"><b>Bu sayfadaki bilgiler nereden geliyor?</b>
+<p>Komutların kullanım metinleri bu makinede kurulu <code>tf</code> ve <code>tf2_ros</code> paketlerinden çalıştırılarak alındı; çerçeve adlandırma kuralları REP-105'ten, birim kuralları REP-103'ten (ikisi de <code>ros.org/reps</code>, resmî ROS standart belgeleri).</p></div>
+
+<h3>Komut satırı araçları</h3>
+<div class="tw"><table><thead><tr><th>Komut</th><th>Ne yapar</th></tr></thead><tbody>
+<tr><td><code>rosrun tf2_tools view_frames.py</code></td><td>O anki TF ağacını dinler ve bir <code>frames.pdf</code> çizer.</td></tr>
+<tr><td><code>rosrun tf view_frames</code></td><td>Aynı işi yapan eski (tf1) araç; hâlâ çalışır.</td></tr>
+<tr><td><code>rosrun tf tf_echo &lt;kaynak&gt; &lt;hedef&gt;</code></td><td>İki çerçeve arasındaki anlık dönüşümü sürekli ekrana yazar.</td></tr>
+<tr><td><code>rosrun tf tf_monitor</code></td><td>Ağaçtaki tüm dönüşümlerin güncellenme hızını ve gecikmesini özetler; hangi bağın "eski" kaldığını bulmak için kullanışlıdır.</td></tr>
+</tbody></table></div>
+
+<h3>Elle dönüşüm yayınlamak: static_transform_publisher</h3>
+<p>İki farklı paket var, ikisinin de bir <code>static_transform_publisher</code> çalıştırılabiliri var ve <strong>komut satırı biçimleri farklı</strong>:</p>
+<div class="tw"><table><thead><tr><th>Paket</th><th>Kullanım</th><th>Davranış</th></tr></thead><tbody>
+<tr><td><code>tf</code> (eski)</td><td><code>rosrun tf static_transform_publisher x y z yaw pitch roll frame_id child_frame_id period_ms</code><br>ya da<br><code>… x y z qx qy qz qw frame_id child_frame_id period_ms</code></td><td>Dönüşümü <code>period_ms</code> milisaniyede bir <strong>tekrar tekrar</strong> yayınlar (normal <code>/tf</code> topic'i üzerinden).</td></tr>
+<tr><td><code>tf2_ros</code> (güncel)</td><td><code>rosrun tf2_ros static_transform_publisher x y z yaw pitch roll frame_id child_frame_id</code><br>ya da<br><code>… x y z qx qy qz qw frame_id child_frame_id</code></td><td>Dönüşümü <strong>bir kez</strong>, kalıcı (latched) <code>/tf_static</code> topic'ine yazar; periyot argümanı yoktur.</td></tr>
+</tbody></table></div>
+<div class="call warn"><b>İkisini karıştırma</b>
+<p><code>tf2_ros</code> sürümüne süre argümanı eklersen argüman sayısı tutmaz ve program kullanım mesajı vererek çıkar. Yeni yazılan launch dosyalarında <code>tf2_ros</code> sürümü tercih edilir; <code>/tf_static</code> kalıcı olduğu için her ihtiyaç duyulduğunda yeniden yayınlanmasına gerek kalmaz.</p></div>
+<pre><code>&lt;!-- launch dosyasında (tf2_ros), örnek: lidar gövdenin 20 cm önünde, 15 cm yukarıda --&gt;
+&lt;node pkg="tf2_ros" type="static_transform_publisher" name="laser_tf"
+      args="0.20 0 0.15 0 0 0 base_link laser"/&gt;</code></pre>
+
+<h3>Çerçeve adlandırma kuralları (REP-105)</h3>
+<p>Mobil robotlarda kullanılacak standart çerçeve adları ve hiyerarşisi REP-105'te tanımlıdır. Bir çerçevenin <strong>tek bir üstü</strong> olabilir; ağaç <code>earth → map → odom → base_link</code> sırasıyla ilerler (çoğu tek robotlu proje yalnızca <code>map → odom → base_link</code> kullanır, <code>earth</code> birden çok haritayı birbirine bağlamak içindir).</p>
+<div class="tw"><table><thead><tr><th>Çerçeve</th><th>Özellik</th><th>Kim yayınlar</th></tr></thead><tbody>
+<tr><td><code>map</code></td><td>Sabit, dünya çerçevesi. Zamanla <strong>sürüklenmez</strong> ama yeni sensör verisiyle <strong>ani sıçrayabilir</strong>.</td><td>Bir lokalizasyon bileşeni (ör. <code>amcl</code>)</td></tr>
+<tr><td><code>odom</code></td><td>Sürekli (pürüzsüz) ama zamanla sürüklenebilir; kısa vadeli referans için iyidir.</td><td>Bir odometri kaynağı (tekerlek, görsel, IMU)</td></tr>
+<tr><td><code>base_link</code></td><td>Robotun gövdesine sabit; konumu robotun projesine göre seçilir.</td><td>—</td></tr>
+<tr><td><code>earth</code></td><td>ECEF (Dünya merkezli, Dünya'ya sabit) çerçevesi; yalnızca birden çok <code>map</code>'i birbirine bağlarken gerekir.</td><td>Genelde statik bir yayıncı</td></tr>
+</tbody></table></div>
+
+<h3>Birim kuralları (REP-103)</h3>
+<div class="tw"><table><thead><tr><th>Büyüklük</th><th>Birim</th></tr></thead><tbody>
+<tr><td>Uzunluk</td><td>metre</td></tr>
+<tr><td>Açı</td><td>radyan</td></tr>
+<tr><td>Zaman</td><td>saniye</td></tr>
+<tr><td>Frekans</td><td>hertz</td></tr>
+</tbody></table></div>
+<p>Yön kuralı: sağ el kuralına göre, çocuk çerçeve saat yönünün <strong>tersine</strong> döndükçe yaw artar. Kartezyen gösterimde eksenler <code>x ileri, y sol, z yukarı</code>; kamera çerçevelerinde (adı <code>_optical</code> ile bitenler) bunun yerine <code>z ileri, x sağ, y aşağı</code> kullanılır.</p>
+
+</section>
+
+<section id="actionlib-ref">
+<h2>actionlib</h2>
+<p><code>actionlib</code>, uzun süren, iptal edilebilir ve ilerleme bildiren işler için istemci/sunucu kütüphanesidir (<code>move_base</code>, kendi <code>dock</code> action'ın gibi). Kavramsal anlatım için <a href="iletisim.html#action">Action</a> bölümüne bak; burada durum makinesi ve API referansı var.</p>
+<div class="call"><b>Bu sayfadaki bilgiler nereden geliyor?</b>
+<p>Durum listesi bu makinede kurulu <code>actionlib_msgs/GoalStatus</code> mesajından okundu; istemci API'si kurulu <code>actionlib.SimpleActionClient</code> sınıfından. <code>axclient.py</code>'nin bulunduğu paket <code>apt-cache policy</code> ile doğrulandı.</p></div>
+
+<h3>Goal durumları (GoalStatus)</h3>
+<p>Bir action goal'unun ömrü boyunca alabileceği <strong>10 durum</strong> vardır (<code>actionlib_msgs/GoalStatus</code>):</p>
+<div class="tw"><table><thead><tr><th class="n">Değer</th><th>Durum</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td class="n">0</td><td><code>PENDING</code></td><td>Goal alındı, henüz işlenmeye başlanmadı.</td></tr>
+<tr><td class="n">1</td><td><code>ACTIVE</code></td><td>Sunucu goal üzerinde çalışıyor.</td></tr>
+<tr><td class="n">2</td><td><code>PREEMPTED</code></td><td>İstemci ya da başka bir goal tarafından iptal edildi (kısmi sonuçla birlikte olabilir).</td></tr>
+<tr><td class="n">3</td><td><code>SUCCEEDED</code></td><td>Başarıyla tamamlandı.</td></tr>
+<tr><td class="n">4</td><td><code>ABORTED</code></td><td>Sunucu goal'u kendi kararıyla durdurdu (başarısızlık).</td></tr>
+<tr><td class="n">5</td><td><code>REJECTED</code></td><td>Sunucu goal'u hiç kabul etmedi (ör. geçersiz).</td></tr>
+<tr><td class="n">6</td><td><code>PREEMPTING</code></td><td><code>ACTIVE</code> iken iptal isteği geldi, sunucu henüz sonucu yayınlamadı.</td></tr>
+<tr><td class="n">7</td><td><code>RECALLING</code></td><td><code>PENDING</code> iken iptal isteği geldi, sunucu henüz geri çağırmayı onaylamadı.</td></tr>
+<tr><td class="n">8</td><td><code>RECALLED</code></td><td>Sunucu hiç <code>ACTIVE</code> olmadan geri çağrıldı.</td></tr>
+<tr><td class="n">9</td><td><code>LOST</code></td><td>İstemci kütüphanesinin kendi kullandığı, goal'un izinin kaybolduğunu gösteren dahili durum.</td></tr>
+</tbody></table></div>
+<p>Pratikte en çok <code>SUCCEEDED</code>, <code>ABORTED</code> ve <code>PREEMPTED</code> ile ilgilenirsin; diğerleri çoğunlukla geçiş anlarını temsil eder.</p>
+
+<h3>SimpleActionClient (Python)</h3>
+<div class="tw"><table><thead><tr><th>Metot</th><th>Ne yapar</th></tr></thead><tbody>
+<tr><td><code>wait_for_server(timeout)</code></td><td>Sunucu ayakta olana kadar bekler; <code>bool</code> döner.</td></tr>
+<tr><td><code>send_goal(goal, done_cb=, active_cb=, feedback_cb=)</code></td><td>Bir goal gönderir; isteğe bağlı geri çağrımlarla tamamlanma/aktifleşme/ilerleme bildirimlerini yakalar.</td></tr>
+<tr><td><code>wait_for_result(timeout)</code></td><td>Goal bitene (ya da süre dolana) kadar bloke olur; zaman aşımında <code>False</code> döner.</td></tr>
+<tr><td><code>get_state()</code></td><td>Yukarıdaki <code>GoalStatus</code> değerlerinden birini döner.</td></tr>
+<tr><td><code>get_result()</code></td><td>Sonuç mesajını döner (yalnızca bitmiş bir goal için anlamlıdır).</td></tr>
+<tr><td><code>cancel_goal()</code></td><td>O anki goal'u iptal eder.</td></tr>
+<tr><td><code>cancel_all_goals()</code></td><td>Sunucudaki tüm goal'ları iptal eder.</td></tr>
+</tbody></table></div>
+<pre><code>client = actionlib.SimpleActionClient('dock', DockAction)
+client.wait_for_server()
+client.send_goal(DockGoal())
+finished = client.wait_for_result(rospy.Duration(30))
+if finished and client.get_state() == actionlib.GoalStatus.SUCCEEDED:
+    print(client.get_result())
+else:
+    client.cancel_goal()</code></pre>
+
+<h3>Sunucu tarafı: SimpleActionServer</h3>
+<p><code>execute_cb</code> ile çalışan basit bir sunucu, ya da <code>execute_callback</code> vermeden <code>accept_new_goal()</code> / <code>set_succeeded()</code> / <code>set_aborted()</code> / <code>set_preempted()</code> ile elle sürülen bir sunucu kurabilirsin. İptal isteğini <code>is_preempt_requested()</code> ile denetlemek, uzun süren işlerde standart kalıptır:</p>
+<pre><code>import rospy, actionlib
+from myrobot_msgs.msg import DockAction, DockResult
+
+class DockServer:
+    def __init__(self):
+        self.srv = actionlib.SimpleActionServer("dock", DockAction,
+                                                execute_cb=self.execute, auto_start=False)
+        self.srv.start()
+
+    def execute(self, goal):
+        rate = rospy.Rate(10)
+        while not rospy.is_shutdown():
+            if self.srv.is_preempt_requested():
+                self.srv.set_preempted(DockResult(success=False, message="İptal edildi."))
+                return
+            done = self.step()                    # bir adım çalış (senin kodun)
+            if done:
+                self.srv.set_succeeded(DockResult(success=True, message="Tamamlandı."))
+                return
+            rate.sleep()
+        self.srv.set_aborted()                    # node kapanıyor
+
+    def step(self):
+        return False                              # ilerleme için self.srv.publish_feedback(...)
+
+rospy.init_node("docking_node")
+DockServer()
+rospy.spin()</code></pre>
+<p><code>auto_start=False</code> verip kurulumdan sonra <code>start()</code> çağırmak önerilen kullanımdır; aksi halde sunucu, nesne tamamen hazır olmadan goal kabul etmeye başlayabilir.</p>
+
+<h3>axclient.py: hazır bir istemci arayüzü</h3>
+<p>Herhangi bir action sunucusunu, kod yazmadan denemek için:</p>
+<pre><code>sudo apt install ros-noetic-actionlib-tools   # kurulu değilse
+rosrun actionlib_tools axclient.py /dock myrobot_msgs/DockAction</code></pre>
+<p><code>axclient.py</code> Noetic'te <code>actionlib</code> paketinde <strong>değil</strong>, ayrı bir <code>actionlib_tools</code> paketindedir. Küçük bir pencere açar (grafik ortam gerektirir) ve goal alanlarını doldurup "SEND GOAL" ile gönderirsin; durumu ve sonucu aynı pencerede izlersin.</p>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="ref-slam-harita.html"><small>← Önceki</small>gmapping ve map_server</a><a class="next" href="ref-yardimci-paketler.html"><small>Sonraki →</small>twist_mux ve ira_laser_tools</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

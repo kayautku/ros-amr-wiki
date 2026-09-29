@@ -1,0 +1,228 @@
+<section id="proje-yapisi">
+<h2>Proje yapısı</h2>
+<p>Bir AMR projesi tek bir dev paket değil, <strong>sorumluluğa göre ayrılmış küçük paketlerdir</strong>. Böylece simülasyonu, navigasyon ayarını ya da görev mantığını birbirinden bağımsız değiştirebilirsin. Yaygın bir düzen (<code>myrobot</code> yerine robotunun adını kullan):</p>
+<div class="tw"><table>
+<thead><tr><th>Paket</th><th>Sorumluluğu</th><th>Tipik içeriği</th></tr></thead>
+<tbody>
+<tr><td><code>myrobot_description</code></td><td>Robotun tanımı</td><td>URDF/xacro, mesh'ler, <code>display.launch</code></td></tr>
+<tr><td><code>myrobot_gazebo</code></td><td>Simülasyon</td><td>dünyalar (<code>.world</code>), Gazebo launch dosyaları</td></tr>
+<tr><td><code>myrobot_bringup</code></td><td>Gerçek donanım</td><td>sürücü ve sensör node'larını başlatan launch dosyaları</td></tr>
+<tr><td><code>myrobot_navigation</code></td><td>Harita ve navigasyon</td><td>haritalar, AMCL/costmap/planlayıcı YAML'ları, launch, RViz ayarı</td></tr>
+<tr><td><code>myrobot_msgs</code></td><td>Ortak mesaj tanımları</td><td>özel <code>.msg</code>, <code>.srv</code>, <code>.action</code> dosyaları</td></tr>
+<tr><td><code>myrobot_mission</code></td><td>Görev mantığı</td><td>durum makinesi, waypoint YAML'ı, görev launch'ı</td></tr>
+</tbody></table></div>
+<p>İyi bir ayrımın işareti şudur: simülasyon paketini bırakıp gerçek robota (<code>myrobot_bringup</code>) geçtiğinde <strong>navigasyon ve görev paketlerinin hiçbiri değişmez</strong>. Simülasyona özgü şeyler yalnızca simülasyon paketinde durur. Mesaj tanımlarını ayrı bir pakete koymak, onları kullanan her paketin yalnızca bu küçük pakete bağımlı olmasını sağlar.</p>
+<h3>Birden çok workspace (overlay)</h3>
+<p>ROS birden çok workspace'i <strong>üst üste</strong> (<em>overlay</em>) kullanabilir. Her <code>source</code>, öncekilerin üstüne yeni bir katman ekler; aynı paket birden çok katmanda varsa üsttekinin kazanır. Yaygın senaryo: hazır bir açık kaynak paketi (örneğin bir robot üreticisinin sürücüsü) ayrı bir workspace'te tutmak, kendi projeni üstüne koymak.</p>
+<div class="stack">
+<div class="top"><span class="tag">en üst · en son source</span><b>~/catkin_ws/devel</b><p>Kendi paketlerin.</p></div>
+<div><span class="tag">ara katman</span><b>~/vendor_ws/devel</b><p>Dışarıdan alınan paketler (ör. üretici sürücüsü).</p></div>
+<div><span class="tag">taban · ilk source</span><b>/opt/ros/noetic</b><p>ROS'un kendisi: <code>move_base</code>, <code>amcl</code>, <code>gazebo_ros</code>…</p></div>
+</div>
+<div class="call warn"><b>Source sırası önemlidir</b>
+<p>Her zaman <strong>alttan üste</strong> source et: önce <code>/opt/ros/noetic</code>, sonra ara workspace, en son kendi workspace'in. Ters sırada sistem paketleri senin paketlerinin önüne geçer; aynı adlı bir paketi kendi workspace'inde değiştirdiysen ROS yine sistemdekini kullanır.</p>
+<p>Ayrıca bir workspace, <strong>derlendiği anda source edilmiş olan ortamları hatırlar</strong>. Bu yüzden <code>catkin_make</code>'i çalıştırmadan önce alttaki ortamları source etmelisin; sonrasında yalnızca <code>source ~/catkin_ws/devel/setup.bash</code> yazman tüm zinciri yükler.</p>
+<pre><code>source /opt/ros/noetic/setup.bash
+source ~/vendor_ws/devel/setup.bash
+source ~/catkin_ws/devel/setup.bash</code></pre></div>
+<div class="call try"><b>Dene: paket görünüyor mu?</b>
+<p>Yeni bir terminalde <code>rospack find &lt;paket_adı&gt;</code> yaz. Yol dönerse ortam doğru, <em>"package not found"</em> derse <code>source</code> eksik.</p></div>
+</section>
+
+<section id="robot">
+<h2>Robot tanımı (URDF)</h2>
+<dl class="pkg">
+<div><dt>Paketler</dt><dd><code>urdf</code>, <code>xacro</code>, <code>robot_state_publisher</code>, <code>joint_state_publisher(_gui)</code></dd></div>
+<div><dt>Parametre</dt><dd><code>robot_description</code> (URDF'in tamamı, metin olarak)</dd></div>
+<div><dt>Araçlar</dt><dd><code>check_urdf</code>, <code>urdf_to_graphiz</code> (<code>liburdfdom-tools</code> paketinde)</dd></div>
+</dl>
+<p><strong>URDF</strong> (Unified Robot Description Format), robotu XML ile tarif eden dosyadır: <em>link</em>'ler (parçalar), <em>joint</em>'ler (parçaların birbirine bağı) ve Gazebo eklentileri. Launch dosyası URDF'i <code>robot_description</code> parametresine yükler; RViz modeli buradan çizer, Gazebo robotu buradan oluşturur, <code>robot_state_publisher</code> da buradan TF ağacını yayınlar.</p>
+<p><strong>xacro</strong>, URDF'e değişken, matematik ve makro ekleyen bir ön işlemcidir. Launch'ta <code>$(find xacro)/xacro dosya.urdf.xacro</code> ile düz URDF'e çevrilir. İki tekerlek gibi tekrarlanan parçaları bir kez yazmanı sağlar.</p>
+<h3>Link ve joint</h3>
+<ul class="b">
+<li>Her <strong>link</strong>'in üç parçası olabilir: <code>visual</code> (görünüş), <code>collision</code> (çarpışma geometrisi) ve <code>inertial</code> (kütle ve atalet). RViz için <code>visual</code> yeter; Gazebo fizik için <code>collision</code> ve <code>inertial</code> ister, <code>inertial</code>'ı olmayan link'leri yok sayar.</li>
+<li>Her <strong>joint</strong> bir üst (<code>parent</code>) ve bir alt (<code>child</code>) link'i, aralarındaki sabit konumu (<code>origin</code>) ve hareket türünü bağlar.</li>
+</ul>
+<div class="tw"><table><thead><tr><th>Joint türü</th><th>Hareket</th><th>Tipik kullanım</th></tr></thead><tbody>
+<tr><td><code>fixed</code></td><td>Yok</td><td>Sensörler, gövdeye vidalı parçalar</td></tr>
+<tr><td><code>continuous</code></td><td>Bir eksen etrafında sınırsız dönme</td><td>Sürüş tekerlekleri</td></tr>
+<tr><td><code>revolute</code></td><td>Sınırlı açıyla dönme (<code>limit</code> gerekir)</td><td>Kol eklemleri, döner kule</td></tr>
+<tr><td><code>prismatic</code></td><td>Bir eksen boyunca doğrusal kayma</td><td>Kaldırma mekanizması</td></tr>
+</tbody></table></div>
+<h3>İskelet: xacro makrosuyla iki tekerlekli gövde</h3>
+<pre><code>&lt;?xml version="1.0"?&gt;
+&lt;robot name="myrobot" xmlns:xacro="http://www.ros.org/wiki/xacro"&gt;
+  &lt;xacro:property name="wheel_r" value="0.05"/&gt;
+  &lt;xacro:property name="wheel_sep" value="0.30"/&gt;
+
+  &lt;link name="base_footprint"/&gt;          &lt;!-- zemindeki izdüşüm, geometrisi yok --&gt;
+
+  &lt;link name="base_link"&gt;                &lt;!-- tekerlek aksı hizasında --&gt;
+    &lt;visual&gt;&lt;origin xyz="0 0 0.06"/&gt;&lt;geometry&gt;&lt;box size="0.40 0.30 0.10"/&gt;&lt;/geometry&gt;&lt;/visual&gt;
+    &lt;collision&gt;&lt;origin xyz="0 0 0.06"/&gt;&lt;geometry&gt;&lt;box size="0.40 0.30 0.10"/&gt;&lt;/geometry&gt;&lt;/collision&gt;
+    &lt;inertial&gt;&lt;origin xyz="0 0 0.06"/&gt;&lt;mass value="5.0"/&gt;
+      &lt;inertia ixx="0.042" ixy="0" ixz="0" iyy="0.071" iyz="0" izz="0.104"/&gt;&lt;/inertial&gt;
+  &lt;/link&gt;
+  &lt;joint name="base_joint" type="fixed"&gt;
+    &lt;parent link="base_footprint"/&gt;&lt;child link="base_link"/&gt;
+    &lt;origin xyz="0 0 ${wheel_r}"/&gt;
+  &lt;/joint&gt;
+
+  &lt;xacro:macro name="wheel" params="side y"&gt;
+    &lt;link name="${side}_wheel"&gt;
+      &lt;visual&gt;&lt;origin rpy="1.5708 0 0"/&gt;
+        &lt;geometry&gt;&lt;cylinder radius="${wheel_r}" length="0.03"/&gt;&lt;/geometry&gt;&lt;/visual&gt;
+      &lt;collision&gt;&lt;origin rpy="1.5708 0 0"/&gt;
+        &lt;geometry&gt;&lt;cylinder radius="${wheel_r}" length="0.03"/&gt;&lt;/geometry&gt;&lt;/collision&gt;
+      &lt;inertial&gt;&lt;mass value="0.3"/&gt;
+        &lt;inertia ixx="0.0002" ixy="0" ixz="0" iyy="0.0004" iyz="0" izz="0.0002"/&gt;&lt;/inertial&gt;
+    &lt;/link&gt;
+    &lt;joint name="${side}_wheel_joint" type="continuous"&gt;
+      &lt;parent link="base_link"/&gt;&lt;child link="${side}_wheel"/&gt;
+      &lt;origin xyz="0 ${y} 0"/&gt;&lt;axis xyz="0 1 0"/&gt;
+    &lt;/joint&gt;
+  &lt;/xacro:macro&gt;
+
+  &lt;xacro:wheel side="left"  y="${wheel_sep/2}"/&gt;
+  &lt;xacro:wheel side="right" y="${-wheel_sep/2}"/&gt;
+  &lt;!-- + denge için bir caster, sensör link'leri ve Gazebo eklentileri --&gt;
+&lt;/robot&gt;</code></pre>
+<p>Gövde kutusu <code>base_link</code>'ten 6 cm yukarı kaydırıldı: kaydırılmasaydı kutunun alt yüzü tekerleklerin alt noktasıyla aynı seviyede (zeminde) olur, Gazebo'da robot gövdesiyle yere sürtünürdü. Tekerlek silindiri varsayılan olarak z ekseni boyunca uzanır; <code>rpy="1.5708 0 0"</code> onu yan yatırır. Tekerlek joint'inin ekseni <code>0 1 0</code> (y) olduğu için pozitif dönüş robotu ileri götürür. Denge için eklenen caster, tekerleklerle aynı anda zemine sert biçimde temas ederse yükü taşıyıp tekerleklerin patinaj yapmasına yol açabilir; casterı milimetrik olarak yukarıda tutmak ya da sürtünmesini sıfırlamak (<code>&lt;mu1&gt;0&lt;/mu1&gt;&lt;mu2&gt;0&lt;/mu2&gt;</code>) yaygın çözümdür.</p>
+<div class="call"><b>base_link mi, base_footprint mi?</b>
+<p>REP-105 yalnızca <code>base_link</code>'i tanımlar. Birçok robot ayrıca, gövdenin zemine izdüşümü olan bir <code>base_footprint</code> çerçevesi kullanır; 2D navigasyon ayarları çoğunlukla bu çerçeveyi referans alır. Hangisini seçersen seç, diff drive eklentisinin <code>robotBaseFrame</code>'i, AMCL'in <code>base_frame_id</code>'si ve costmap'lerin <code>robot_base_frame</code>'i <strong>aynı çerçeveyi</strong> göstermelidir. Ayrıntı: <a href="#tf">TF ve koordinat çerçeveleri</a>.</p></div>
+
+<h3>Tekerlek sürücüsü (Gazebo)</h3>
+<p><code>libgazebo_ros_diff_drive.so</code> eklentisi <code>/cmd_vel</code>'i dinler; <code>/odom</code>'u ve <code>odom→robotBaseFrame</code> TF'sini yayınlar.</p>
+<pre><code>&lt;gazebo&gt;
+  &lt;plugin name="diff_drive" filename="libgazebo_ros_diff_drive.so"&gt;
+    &lt;updateRate&gt;50&lt;/updateRate&gt;
+    &lt;leftJoint&gt;left_wheel_joint&lt;/leftJoint&gt;
+    &lt;rightJoint&gt;right_wheel_joint&lt;/rightJoint&gt;
+    &lt;wheelSeparation&gt;0.30&lt;/wheelSeparation&gt;
+    &lt;wheelDiameter&gt;0.10&lt;/wheelDiameter&gt;
+    &lt;commandTopic&gt;cmd_vel&lt;/commandTopic&gt;
+    &lt;odometryTopic&gt;odom&lt;/odometryTopic&gt;
+    &lt;odometryFrame&gt;odom&lt;/odometryFrame&gt;
+    &lt;robotBaseFrame&gt;base_footprint&lt;/robotBaseFrame&gt;
+    &lt;odometrySource&gt;encoder&lt;/odometrySource&gt;
+    &lt;publishOdomTF&gt;true&lt;/publishOdomTF&gt;
+  &lt;/plugin&gt;
+&lt;/gazebo&gt;</code></pre>
+<div class="tw"><table><thead><tr><th>Ayar</th><th>Varsayılan</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td><code>leftJoint</code> / <code>rightJoint</code></td><td>—</td><td>Sürüş tekerleklerinin joint adları.</td></tr>
+<tr><td><code>wheelSeparation</code></td><td>0,34 m</td><td>İki tekerlek arası mesafe. URDF'teki gerçek değerle aynı olmalı.</td></tr>
+<tr><td><code>wheelDiameter</code></td><td>0,15 m</td><td>Tekerlek çapı. URDF'teki yarıçapın iki katı olmalı.</td></tr>
+<tr><td><code>robotBaseFrame</code></td><td><code>base_footprint</code></td><td>Odometri TF'sinin çocuk çerçevesi. URDF'in kök çerçevesiyle aynı olmalı.</td></tr>
+<tr><td><code>odometrySource</code></td><td><code>world</code></td><td><code>world</code>: Gazebo'nun gerçek pozu (hiç kaymaz). <code>encoder</code>: tekerlek dönüşünden hesaplanan, gerçek robota daha yakın odometri.</td></tr>
+</tbody></table></div>
+<div class="call warn"><b>Eklentinin iki tuzağı</b>
+<p><strong>1. Geometri ayarlarını yazmazsan varsayılanlar kullanılır</strong> ve robot komut ettiğinden farklı hızda gider ya da döner; odometri de yanlış olur.</p>
+<p><strong>2. <code>robotBaseFrame</code> URDF'te yoksa</strong> eklenti var olmayan bir çerçeveye dönüşüm yayınlar ve TF ağacı kopuk kalır (RViz'de robot görünmez, navigasyon "transform" hatası verir).</p></div>
+<div class="call try"><b>Dene: robotu simülasyon olmadan gör</b>
+<p>URDF'i <code>robot_description</code>'a yükleyip <code>joint_state_publisher_gui</code>, <code>robot_state_publisher</code> ve <code>rviz</code>'i başlatan küçük bir <code>display.launch</code> yaz. RViz'de <em>Fixed Frame</em>'i robotun kök çerçevesi yap, <code>RobotModel</code> ve <code>TF</code> ekle. Dosya bozuksa <code>check_urdf &lt;(xacro dosya.urdf.xacro)</code> hatayı söyler.</p></div>
+<p>Gerçek bir AMR'ın tam URDF'i için: <a href="ornek-robot.html#ornek-urdf">Örnek robot</a> (geliştirme aşamasında).</p>
+</section>
+
+<section id="simulasyon">
+<h2>Gazebo simülasyonu</h2>
+<dl class="pkg">
+<div><dt>Paketler</dt><dd><code>gazebo_ros</code>, <code>gazebo_plugins</code> (<code>desktop-full</code> ile gelir; Noetic'te Gazebo 11)</dd></div>
+<div><dt>Launch</dt><dd><code>gazebo_ros/empty_world.launch</code></dd></div>
+<div><dt>Node</dt><dd><code>gazebo_ros/spawn_model</code></dd></div>
+</dl>
+<p><strong>Gazebo</strong> fizik ve sensör simülatörüdür: dünyayı (duvarlar, zemin, raflar) ve robotu barındırır, lidar/kamera verisini üretir, tekerlek komutunu fiziğe çevirir. Dünya bir <code>.world</code> (SDF) dosyasıdır; Gazebo'nun <em>Building Editor</em>'ü ile duvar çizip dünya oluşturabilirsin.</p>
+<p>Tipik bir simülasyon launch dosyası şunları yapar:</p>
+<ol class="b">
+<li>Gazebo'yu belirli bir dünyayla açar (<code>gazebo_ros/empty_world.launch</code>'a <code>world_name</code> vererek).</li>
+<li>URDF'i <code>robot_description</code> parametresine yükler.</li>
+<li>Robotu dünyaya yerleştirir (<code>spawn_model</code>) ve <code>robot_state_publisher</code>'ı başlatır.</li>
+</ol>
+<pre><code>&lt;launch&gt;
+  &lt;arg name="gui" default="true"/&gt;
+  &lt;include file="$(find gazebo_ros)/launch/empty_world.launch"&gt;
+    &lt;arg name="world_name" value="$(find myrobot_gazebo)/worlds/depo.world"/&gt;
+    &lt;arg name="gui" value="$(arg gui)"/&gt;
+  &lt;/include&gt;
+
+  &lt;param name="robot_description"
+         command="$(find xacro)/xacro $(find myrobot_description)/urdf/myrobot.urdf.xacro"/&gt;
+
+  &lt;node name="spawn_robot" pkg="gazebo_ros" type="spawn_model"
+        args="-urdf -param robot_description -model myrobot -x 0 -y 0 -z 0.05"/&gt;
+  &lt;node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/&gt;
+&lt;/launch&gt;</code></pre>
+<div class="tw"><table><thead><tr><th><code>empty_world.launch</code> argümanı</th><th>Varsayılan</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td><code>world_name</code></td><td>boş dünya</td><td>Yüklenecek <code>.world</code> dosyası</td></tr>
+<tr><td><code>gui</code></td><td><code>true</code></td><td><code>false</code>: pencere açmadan (ekransız) çalışır</td></tr>
+<tr><td><code>paused</code></td><td><code>false</code></td><td><code>true</code>: simülasyon duraklatılmış başlar</td></tr>
+<tr><td><code>use_sim_time</code></td><td><code>true</code></td><td>Node'lar Gazebo'nun <code>/clock</code>'unu kullanır</td></tr>
+</tbody></table></div>
+<div class="call"><b>use_sim_time</b>
+<p><code>empty_world.launch</code>, <code>use_sim_time</code>'ı <code>true</code> yapar: tüm node'lar duvar saati yerine Gazebo'nun <code>/clock</code>'unu kullanır. Bu yüzden navigasyon <strong>Gazebo'dan sonra</strong> başlatılmalıdır; önce başlarsa zaman senkronsuz olur, TF uyarıları yağar. Gerçek robotta bu parametre <code>false</code> olmalıdır.</p></div>
+<div class="call warn"><b>Simülasyon gerçek değildir</b>
+<p>Gazebo'daki sensörler gürültüsüz olabilir, tekerlek eklentisinin varsayılan odometrisi hiç kaymaz ve zemin sürtünmesi ideal olabilir. Simülasyonda çalışan bir ayar gerçek robotta çalışmayabilir. Yine de mantık hatalarını (durum makinesi, yol planı) bulmak için çok değerlidir. Sensör eklentilerine <code>&lt;noise&gt;</code> eklemek ve <code>odometrySource</code>'u <code>encoder</code> yapmak farkı azaltır.</p></div>
+<p>Simülasyonun hızı <code>real time factor</code> ile gösterilir. 1,0 gerçek zamana denk gelir; belirgin biçimde altına düşerse dünya çok karmaşık ya da bilgisayar yetersiz demektir (sensör güncelleme hızını ya da lidar örnek sayısını düşürmek yardımcı olur).</p>
+<h3>Sık kullanılan Gazebo eklentileri</h3>
+<div class="tw"><table><thead><tr><th>Eklenti</th><th>Ne üretir</th></tr></thead><tbody>
+<tr><td><code>libgazebo_ros_diff_drive.so</code></td><td><code>/cmd_vel</code> → tekerlek hareketi; <code>/odom</code> ve <code>odom</code> TF'si</td></tr>
+<tr><td><code>libgazebo_ros_laser.so</code> (sensör <code>type="ray"</code>)</td><td><code>sensor_msgs/LaserScan</code></td></tr>
+<tr><td><code>libgazebo_ros_camera.so</code> (sensör <code>type="camera"</code>)</td><td><code>sensor_msgs/Image</code> + <code>CameraInfo</code></td></tr>
+<tr><td><code>libgazebo_ros_imu_sensor.so</code> (sensör <code>type="imu"</code>)</td><td><code>sensor_msgs/Imu</code></td></tr>
+<tr><td><code>libgazebo_ros_joint_state_publisher.so</code></td><td>Seçilen joint'ler için <code>/joint_states</code></td></tr>
+</tbody></table></div>
+</section>
+
+<section id="sensorler">
+<h2>Sensörler ve odometri</h2>
+<h3>LaserScan</h3>
+<p>2D lidar, çevrendeki engellere olan mesafeleri bir yelpaze biçiminde verir. Mesaj türü <code>sensor_msgs/LaserScan</code>'dır ve önemli alanları:</p>
+<div class="tw"><table><thead><tr><th>Alan</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td><code>header.frame_id</code></td><td>Taramanın ölçüldüğü çerçeve (lidarın TF çerçevesi)</td></tr>
+<tr><td><code>angle_min</code>, <code>angle_max</code></td><td>Taramanın başlangıç ve bitiş açısı (radyan, 0 = lidarın önü)</td></tr>
+<tr><td><code>angle_increment</code></td><td>İki ışın arası açı</td></tr>
+<tr><td><code>range_min</code>, <code>range_max</code></td><td>Geçerli mesafe aralığı (m)</td></tr>
+<tr><td><code>ranges[]</code></td><td>Her ışının mesafesi. Hiçbir şey görmeyen ışın <code>inf</code>, geçersiz ölçüm <code>NaN</code> olabilir.</td></tr>
+</tbody></table></div>
+<p>Basit bir "önümde engel var mı?" kontrolü. Işın indeksini sabit varsaymak yerine <strong>açıdan hesapla</strong>: örneğin −π … +π aralığındaki bir taramada 0. ışın lidarın <em>arkasındadır</em>, ön yön dizinin ortasındadır.</p>
+<pre><code>import math
+
+def front_clear(scan, limit=1.0, half_width=0.17):        # ±0,17 rad ≈ ±10°
+    for i, r in enumerate(scan.ranges):
+        a = scan.angle_min + i * scan.angle_increment
+        a = math.atan2(math.sin(a), math.cos(a))          # açıyı −π … +π aralığına al
+        # menzil dışındakiler (inf ve NaN dahil) bu karşılaştırmada elenir
+        if abs(a) &lt;= half_width and scan.range_min &lt;= r &lt;= limit:
+            return False
+    return True</code></pre>
+<div class="call warn"><b>inf ve NaN'ı ele almayı unutma</b>
+<p>Işın menzil içinde bir şey görmezse <code>inf</code>, ölçüm geçersizse <code>NaN</code> döner. Bunları doğrudan <code>min()</code> ya da ortalamaya sokarsan program hata verir ya da yanlış sonuç çıkar. Yukarıdaki kod <code>range_min ≤ r ≤ limit</code> koşuluyla ikisini de eler. Açıyı her ışın için hesaplayıp normalize etmek, taraması 0 … 2π olan lidarlarda da (ön sektör dizinin iki ucuna bölünür) doğru çalışmasını sağlar. Kod, lidarın robotun önüne baktığını varsayar; lidar URDF'te döndürülmüş olarak takılıysa açıyı önce robot çerçevesine çevir.</p></div>
+<h3>Birden çok lidarı tek taramada birleştirmek</h3>
+<p>AMCL ve gmapping <em>tek</em> bir <code>LaserScan</code> topic'i okur. Robotun birden çok lidarı varsa (ör. kör noktaları kapatmak için iki köşede birer tane) iki seçenek vardır:</p>
+<ul class="b">
+<li><strong>Birleştirmek:</strong> <code>ira_laser_tools</code> paketinin <code>laserscan_multi_merger</code> node'u, girdi taramalarını TF'teki konumlarına göre <code>destination_frame</code>'e çevirip <strong>tek bir sanal taramada</strong> birleştirir. Bu yüzden her lidar çerçevesi TF ağacında doğru bağlı olmalıdır.</li>
+<li><strong>Ayrı vermek:</strong> costmap her taramayı ayrı bir <code>observation_source</code> olarak alabilir. Ancak AMCL ve gmapping yine tek bir tarama ister.</li>
+</ul>
+<pre><code>&lt;node pkg="ira_laser_tools" type="laserscan_multi_merger" name="laserscan_multi_merger"&gt;
+  &lt;param name="destination_frame"      value="base_footprint"/&gt;
+  &lt;param name="laserscan_topics"       value="/scan_front /scan_rear"/&gt;
+  &lt;param name="scan_destination_topic" value="/scan"/&gt;
+  &lt;param name="angle_min"       value="-3.14159"/&gt;
+  &lt;param name="angle_max"       value="3.14159"/&gt;
+  &lt;param name="angle_increment" value="0.00872665"/&gt;   &lt;!-- 0,5° → 720 ışın --&gt;
+  &lt;param name="range_min"       value="0.10"/&gt;
+  &lt;param name="range_max"       value="12.0"/&gt;          &lt;!-- lidarların gerçek menziline eşitle --&gt;
+&lt;/node&gt;</code></pre>
+<p>Kurulum: <code>sudo apt install ros-noetic-ira-laser-tools</code>. Varsayılanlar genel amaçlı değildir (ör. <code>angle_min</code>/<code>angle_max</code> ±2,36 rad, yani tam daire değil); tam daire istiyorsan açıları mutlaka yaz. Paketin iki sınırlaması vardır: birleştirilen taramaların <strong>düzlemleri yaklaşık aynı olmalıdır</strong> (farklı yükseklikteki lidarlar farklı engelleri görür) ve sonuç, oklüzyon hesaba katılmadan, <code>destination_frame</code>'in merkezinde duran <em>tek bir sanal lidardan</em> gelmiş gibi üretilir. Tüm parametreleri için: <a href="ref-yardimci-paketler.html#ira-laser-tools-ref">ira_laser_tools referansı</a>.</p>
+<div class="call try"><b>Dene</b>
+<p>RViz'de her ham tarama için ayrı bir <code>LaserScan</code> göstergesi ekle ve farklı renkler ver. Sonra bunları kapatıp birleşik <code>/scan</code>'i aç: çevreyi eksiksiz göstermeli. Bir lidarın çizgisi duvara oturmuyorsa onun URDF konumu ya da yönü yanlıştır.</p></div>
+<h3>Kamera</h3>
+<p>Kamera <code>sensor_msgs/Image</code> ve kalibrasyon bilgisini taşıyan <code>sensor_msgs/CameraInfo</code> yayınlar. Python'da OpenCV ile işlemek için <code>cv_bridge</code> kullanılır:</p>
+<pre><code>from cv_bridge import CvBridge
+bridge = CvBridge()
+
+def image_cb(msg):
+    frame = bridge.imgmsg_to_cv2(msg, "bgr8")     # NumPy dizisi, OpenCV biçimi</code></pre>
+<p>Gazebo kamera eklentisinde topic adı <code>&lt;cameraName&gt;/&lt;imageTopicName&gt;</code> biçiminde oluşur (ör. <code>cameraName=camera</code> ise <code>/camera/image_raw</code>). Görüntüyü izlemek için <code>rosrun rqt_image_view rqt_image_view</code>.</p>
+<h3>Odometri</h3>
+<p>Odometri, tekerlek dönüşünden hesaplanan konum tahminidir (<code>nav_msgs/Odometry</code>). Kısa mesafede iyi, uzun mesafede kayar (tekerlek kayması, yanlış kalibrasyon). Kaymayı azaltmak için tekerlek odometrisi bir <strong>IMU</strong> ile birleştirilir; bunun standart aracı <code>robot_localization</code> paketinin <em>EKF</em> node'udur (<code>ekf_localization_node</code>). Bu node <code>/odom</code>'u ve IMU'nun <code>sensor_msgs/Imu</code> verisini tek bir, daha kararlı kestirimde toplar ve <code>odom→base</code> TF'sini kendisi yayınlar; bu durumda sürücünün (ya da Gazebo eklentisinin) aynı TF'yi yayınlamasını kapatmalısın (<code>publishOdomTF: false</code>), yoksa iki kaynak aynı çerçeveyi yayınlar.</p>
+</section>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>twist_mux ve ira_laser_tools parametreleri · ROS AMR Wiki</title>
+<meta name="description" content="twist_mux, birden çok geometry_msgs/Twist kaynağını (navigasyon, joystick, klavye, acil durdurma) önceliğe göre tek bir çıktıda birleştiren seçicidir. Kavramsal anlatım i">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg cur"><a href="ref-yardimci-paketler.html" aria-current="page">twist_mux ve ira_laser_tools</a><ul class="sub"><li><a href="#twist-mux-ref">twist_mux</a></li><li><a href="#ira-laser-tools-ref">ira_laser_tools</a></li></ul></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">C · Paket referansı</p><h1>twist_mux ve ira_laser_tools parametreleri</h1></header>
+<section id="twist-mux-ref">
+<h2>twist_mux</h2>
+<p><code>twist_mux</code>, birden çok <code>geometry_msgs/Twist</code> kaynağını (navigasyon, joystick, klavye, acil durdurma) önceliğe göre tek bir çıktıda birleştiren seçicidir. Kavramsal anlatım için <a href="gorev-ve-docking.html#twist-mux">Komut kaynaklarını yönetmek</a> bölümüne bak.</p>
+<div class="call"><b>Bu sayfadaki değerler nereden geliyor?</b>
+<p>ROS paketi <code>ros-teleop/twist_mux</code>'ın kaynak kodundan (<code>noetic-devel</code> dalı: <code>src/twist_mux.cpp</code>, <code>include/twist_mux/topic_handle.h</code>).</p></div>
+<h4>Arayüz</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Yön</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>cmd_vel_out</code></td><td>yayın</td><td><code>geometry_msgs/Twist</code> — tek çıktı; genelde <code>/cmd_vel</code>'e <em>remap</em> edilir</td></tr>
+<tr><td><code>topics</code> altındaki her topic</td><td>abone</td><td><code>geometry_msgs/Twist</code></td></tr>
+<tr><td><code>locks</code> altındaki her topic</td><td>abone</td><td><code>std_msgs/Bool</code></td></tr>
+</tbody></table></div>
+<h3>Parametre yapısı</h3>
+<p><code>topics</code> ve <code>locks</code>, her biri aynı dört alanı taşıyan birer liste olarak verilir:</p>
+<div class="tw ptab"><table><thead><tr><th>Alan</th><th>Tür</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td><code>name</code></td><td>string</td><td>Yalnızca tanılama (diagnostics) için okunabilir ad.</td></tr>
+<tr><td><code>topic</code></td><td>string</td><td>Dinlenecek topic adı.</td></tr>
+<tr><td><code>timeout</code></td><td>double</td><td>Bu süre (sn) boyunca mesaj gelmezse kaynak zaman aşımına uğramış sayılır. <code>0</code>: hiç zaman aşımına uğramaz. Kilitlerde zaman aşımı kilidi <strong>etkinleştirir</strong> (bkz. aşağı).</td></tr>
+<tr><td><code>priority</code></td><td>int (0–255)</td><td>Öncelik; büyük olan kazanır.</td></tr>
+</tbody></table></div>
+<p>Seçim mantığı: bir hız girdisine mesaj geldiğinde, zaman aşımına uğramamış ve kilitlerce bastırılmamış girdiler arasında <strong>en yüksek öncelikli</strong> olan o ise mesaj <code>cmd_vel_out</code>'a aynen yazılır; değilse atılır. Bir girdi, etkin bir kilidin önceliğinden <em>düşük</em> öncelikliyse bastırılır (eşitse bastırılmaz). Bir kilit, topic'ine <code>true</code> geldiğinde <strong>ya da</strong> <code>timeout &gt; 0</code> iken bu süre boyunca mesaj gelmediğinde (başlangıçta henüz hiç mesaj gelmemişken de) etkindir; yani kilit yayıncısı çökerse kilit kapanmaz, devreye girer. Tanılama (<code>/diagnostics</code>) saniyede bir güncellenir.</p>
+<div class="call warn"><b>twist_mux sıfır hız yayınlamaz</b>
+<p><code>twist_mux</code> yalnızca bir girdiye mesaj geldiğinde yayın yapar. Tüm girdiler zaman aşımına uğradığında ya da bir kilit devreye girdiğinde çıkışa <strong>sıfır hız yazmaz, sadece susar</strong>. Robot sürücüsünün kendi komut zaman aşımı yoksa (Gazebo'nun <code>diff_drive</code> eklentisinde yoktur) robot son komutla gitmeye devam eder. Durdurma için sürücü tarafında bir zaman aşımı ya da <code>twist_mux</code> çıkışından sonra bir watchdog kullan (bkz. <a href="pratik.html#log-tanilama">Basit bir watchdog</a>).</p></div>
+<pre><code># örnek yapılandırma
+topics:
+  - {name: navigation, topic: cmd_vel_nav,    timeout: 0.5, priority: 10}
+  - {name: joystick,   topic: cmd_vel_joy,    timeout: 0.5, priority: 100}
+locks:
+  - {name: e_stop,     topic: e_stop_active,  timeout: 0.0, priority: 255}</code></pre>
+</section>
+
+<section id="ira-laser-tools-ref">
+<h2>ira_laser_tools</h2>
+<p><code>ira_laser_tools</code>, birden çok 2D lidarı tek bir taramada birleştiren <code>laserscan_multi_merger</code> node'unu sağlar. Kavramsal anlatım için <a href="robot-ve-simulasyon.html#sensorler">Birden çok lidarı tek taramada birleştirmek</a> bölümüne bak.</p>
+<div class="call"><b>Bu sayfadaki değerler nereden geliyor?</b>
+<p>ROS paketi <code>iralabdisco/ira_laser_tools</code>'un kurulu <code>1.0.7</code> sürümünün kaynak kodundan (<code>src/laserscan_multi_merger.cpp</code>). Kurulumu: <code>sudo apt install ros-noetic-ira-laser-tools</code>.</p></div>
+<h3>laserscan_multi_merger</h3>
+<p>Birden çok <code>sensor_msgs/LaserScan</code> kaynağını tek bir taramada (ve isteğe bağlı bir nokta bulutunda) birleştirir. Çıktı, <code>destination_frame</code>&#x27;in merkezinde duran tek bir sanal lidardan geliyormuş gibi üretilir; kaynak taramaların birbirini engellemesi (oklüzyon) hesaba katılmaz.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="ira-laserscan_topics"><td><code>laserscan_topics</code></td><td>string</td><td class="n"><code>&quot;&quot;</code></td><td class="n">—</td><td>Birleştirilecek girdi topic&#x27;leri, boşlukla ayrılmış.</td></tr>
+<tr id="ira-destination_frame"><td><code>destination_frame</code></td><td>string</td><td class="n"><code>&quot;cart_frame&quot;</code></td><td class="n">—</td><td>Birleşik çıktının ifade edileceği çerçeve.</td></tr>
+<tr id="ira-scan_destination_topic"><td><code>scan_destination_topic</code></td><td>string</td><td class="n"><code>&quot;/scan_multi&quot;</code></td><td class="n">—</td><td>Çıktı <code>LaserScan</code> topic&#x27;i.</td></tr>
+<tr id="ira-cloud_destination_topic"><td><code>cloud_destination_topic</code></td><td>string</td><td class="n"><code>&quot;/merged_cloud&quot;</code></td><td class="n">—</td><td>Aynı verinin <code>PointCloud2</code> biçimindeki çıktı topic&#x27;i.</td></tr>
+<tr id="ira-angle_min"><td><code>angle_min</code></td><td>double</td><td class="n"><code>-2.36</code></td><td class="n">—</td><td>Çıktı taramasının başlangıç açısı (rad).</td></tr>
+<tr id="ira-angle_max"><td><code>angle_max</code></td><td>double</td><td class="n"><code>2.36</code></td><td class="n">—</td><td>Çıktı taramasının bitiş açısı (rad).</td></tr>
+<tr id="ira-angle_increment"><td><code>angle_increment</code></td><td>double</td><td class="n"><code>0.0058</code></td><td class="n">—</td><td>Çıktı taramasında iki ışın arası açı (rad).</td></tr>
+<tr id="ira-range_min"><td><code>range_min</code></td><td>double</td><td class="n"><code>0.45</code></td><td class="n">—</td><td>Çıktı taramasında geçerli sayılacak en küçük mesafe (m).</td></tr>
+<tr id="ira-range_max"><td><code>range_max</code></td><td>double</td><td class="n"><code>25</code></td><td class="n">—</td><td>Çıktı taramasında geçerli sayılacak en büyük mesafe (m).</td></tr>
+<tr id="ira-scan_time"><td><code>scan_time</code></td><td>double</td><td class="n"><code>0.0333333</code></td><td class="n">—</td><td>Çıktı mesajının <code>scan_time</code> alanına yazılacak değer (sn).</td></tr>
+</tbody></table></div>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="ref-tf-actionlib.html"><small>← Önceki</small>tf ve actionlib</a><a class="next" href="pratik.html"><small>Sonraki →</small>Pratik</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

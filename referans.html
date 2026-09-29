@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sözlük ve dosya düzeni · ROS AMR Wiki</title>
+<meta name="description" content="Sitedeki örneklerin varsaydığı, yaygın bir AMR workspace düzeni. Paket adları (myrobot_*) temsilidir; önemli olan sorumlulukların nasıl dağıldığıdır (bkz. Proje yapısı). ">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg cur"><a href="referans.html" aria-current="page">Sözlük ve dosya düzeni</a><ul class="sub"><li><a href="#sozluk">Sözlük</a></li><li><a href="#dosya-haritasi">Önerilen dosya düzeni</a></li></ul></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">D · Pratik</p><h1>Sözlük ve dosya düzeni</h1></header>
+<section id="sozluk">
+<h2>Sözlük</h2>
+<div class="tw"><table><thead><tr><th>Terim</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td>Action</td><td>Uzun süren, iptal edilebilir, ilerleme bildiren iş türü.</td></tr>
+<tr><td>AMCL</td><td>Lidar taramasını haritayla karşılaştırıp robotun konumunu bulan algoritma (Adaptive Monte Carlo Localization).</td></tr>
+<tr><td>AMR</td><td>Autonomous Mobile Robot: kendi başına yol bulan tekerlekli robot.</td></tr>
+<tr><td>Caster</td><td>Robotu dengede tutan, sürüşe katılmayan serbest tekerlek.</td></tr>
+<tr><td>catkin</td><td>ROS 1'in derleme sistemi.</td></tr>
+<tr><td>Costmap</td><td>Her hücrenin geçilebilirlik maliyetini tutan harita.</td></tr>
+<tr><td>Davranış ağacı</td><td>Robot davranışını öncelikli, iç içe düğümlerle tarif eden yapı (durum makinesine bir alternatif).</td></tr>
+<tr><td>Diferansiyel sürüş</td><td>Sol ve sağ tekerleğin farklı hızda döndüğü ve bu farkla yön değiştiren düzen.</td></tr>
+<tr><td>Docking</td><td>Bir istasyona hassas yanaşma.</td></tr>
+<tr><td>dynamic_reconfigure</td><td>Çalışan bir node'un bazı parametrelerini yeniden başlatmadan değiştirmeyi sağlayan mekanizma (<code>rqt_reconfigure</code> ile).</td></tr>
+<tr><td>EKF</td><td>Extended Kalman Filter: birkaç gürültülü sensörü tek bir kestirimde birleştiren filtre.</td></tr>
+<tr><td>Frame (çerçeve)</td><td>TF'deki bir koordinat sistemi (<code>map</code>, <code>odom</code>, <code>base_link</code>…).</td></tr>
+<tr><td>Gazebo</td><td>Fizik ve sensör simülatörü.</td></tr>
+<tr><td>Homotopi sınıfı</td><td>TEB'de bir engelin solundan ya da sağından geçmek gibi, birbirine sürekli dönüştürülemeyen yol ailelerinden her biri.</td></tr>
+<tr><td>HSV</td><td>Renk temsilinde ton, doygunluk, parlaklık; ışıktan bağımsız renk tespitinde kullanılır.</td></tr>
+<tr><td>Inflation (şişirme)</td><td>Costmap'te engellerin çevresine robotun yaklaşmaması için ceza yayılması.</td></tr>
+<tr><td>LaserScan</td><td>Lidarın tek turluk mesafe ölçümlerini taşıyan mesaj türü.</td></tr>
+<tr><td>Launch dosyası</td><td>Birçok node'u ve ayarı tek komutla başlatan XML dosyası.</td></tr>
+<tr><td>Lidar birleştirme</td><td>Birden çok lidarın taramalarını tek bir <code>LaserScan</code>'de toplama (ör. <code>laserscan_multi_merger</code>); navigasyon yığını tek bir tarama beklediği için gerekir.</td></tr>
+<tr><td>Master (roscore)</td><td>Node'ların birbirini bulmasını sağlayan kayıt defteri (ROS 1).</td></tr>
+<tr><td>Node</td><td>ROS'a kayıtlı çalışan program.</td></tr>
+<tr><td>Odometri</td><td>Tekerlek dönüşünden hesaplanan konum tahmini.</td></tr>
+<tr><td>Overlay</td><td>Birden çok workspace'in üst üste yüklenmesi.</td></tr>
+<tr><td>P kontrolü</td><td>Düzeltmeyi hatayla orantılı yapan basit kontrol.</td></tr>
+<tr><td>Parametre</td><td>Master'da saklanan ayar değeri.</td></tr>
+<tr><td>Quaternion</td><td>ROS'ta yönelimi (dönüşü) gösteren dört sayılı gösterim; <code>yaw</code> açısından <code>quaternion_from_euler</code> ile üretilir.</td></tr>
+<tr><td>REP</td><td>ROS Enhancement Proposal: standartları tarif eden belgeler (REP-103 birimler, REP-105 çerçeveler).</td></tr>
+<tr><td>rosbag</td><td>Topic verisini kaydedip tekrar oynatma aracı.</td></tr>
+<tr><td>RViz</td><td>ROS verisi için görselleştirme aracı.</td></tr>
+<tr><td>SLAM</td><td>Aynı anda harita çıkarma ve konum bulma.</td></tr>
+<tr><td>SMACH</td><td>Python durum makinesi kütüphanesi (ROS 1). Bkz. <a href="smach.html#smach">Durum makinesi (SMACH)</a>.</td></tr>
+<tr><td>TEB</td><td>Timed Elastic Band: <code>move_base</code>'in yörünge optimizasyonlu yerel planlayıcısı.</td></tr>
+<tr><td>TF</td><td>Çerçeveler arası dönüşüm ağacı.</td></tr>
+<tr><td>Toparlanma davranışı (recovery behavior)</td><td><code>move_base</code> takıldığında sırayla denenen kurtarma eklentileri (ör. costmap temizleme, yerinde dönme).</td></tr>
+<tr><td>Topic</td><td>Adlandırılmış tek yönlü veri kanalı.</td></tr>
+<tr><td>Twist</td><td>Hız mesajı (<code>linear</code> ve <code>angular</code>).</td></tr>
+<tr><td>URDF</td><td>Robotu XML ile tarif eden dosya biçimi.</td></tr>
+<tr><td>Watchdog</td><td>Belirli süre komut ya da sinyal gelmezse sistemi güvenli duruma (örneğin robotu durdurmaya) alan bekçi.</td></tr>
+<tr><td>Waypoint</td><td>Rota üzerinde uğranacak hedef nokta.</td></tr>
+<tr><td>Workspace</td><td>Paketlerin bulunduğu ve <code>catkin</code> ile derlenen çalışma klasörü.</td></tr>
+<tr><td>xacro</td><td>URDF'i değişkenler ve makrolarla kısaltan XML ön işlemcisi.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="dosya-haritasi">
+<h2>Önerilen dosya düzeni</h2>
+<p>Sitedeki örneklerin varsaydığı, yaygın bir AMR workspace düzeni. Paket adları (<code>myrobot_*</code>) temsilidir; önemli olan sorumlulukların nasıl dağıldığıdır (bkz. <a href="robot-ve-simulasyon.html#proje-yapisi">Proje yapısı</a>). Gerçek dosyaları olan bir örnek için: <a href="ornek-robot.html">Örnek robot</a>.</p>
+<pre class="tree">catkin_ws/
+└── src/
+    ├── myrobot_msgs/
+    │   └── msg/  srv/  action/            özel mesaj, servis, action tanımları
+    ├── myrobot_description/
+    │   ├── urdf/myrobot.urdf.xacro        robotun tanımı
+    │   ├── meshes/                        3B modeller (isteğe bağlı)
+    │   └── launch/display.launch          RViz'de modeli göster
+    ├── myrobot_gazebo/
+    │   ├── worlds/*.world                 simülasyon dünyaları
+    │   └── launch/sim.launch              Gazebo + robot
+    ├── myrobot_bringup/
+    │   └── launch/bringup.launch          gerçek robot: sürücüler, sensörler
+    ├── myrobot_navigation/
+    │   ├── maps/*.{pgm,yaml}              kayıtlı haritalar
+    │   ├── param/                         amcl, costmap_common, global_costmap,
+    │   │                                  local_costmap, planner, twist_mux (.yaml)
+    │   ├── rviz/nav.rviz
+    │   └── launch/navigation.launch       map_server + amcl + move_base
+    └── myrobot_mission/
+        ├── config/waypoints.yaml
+        ├── launch/mission.launch
+        └── scripts/                       durum makinesi, görev node'u</pre>
+<h3>Bir sonraki adım</h3>
+<p><a href="yol-haritasi.html#yol-haritasi">Yol haritasına</a> dön ve bulunduğun aşamayı seç. Şu an hangi aşamada olduğuna karar veremiyorsan aşama 1'in "bitti sayılır" ölçütünü dene: kendi <code>publisher</code>/<code>subscriber</code> çiftini <code>rqt_graph</code>'ta gösterebiliyorsan aşama 2'ye geç.</p>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="pratik.html"><small>← Önceki</small>Pratik</a><a class="next" href="ornek-robot.html"><small>Sonraki →</small>Örnek robot</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>costmap_2d ve katmanları · ROS AMR Wiki</title>
+<meta name="description" content="costmap_2d, &quot;buradan geçmek ne kadar tehlikeli&quot; haritasını (costmap) katman katman kurar: harita, canlı sensör verisi, güvenlik payı (inflation) her biri ayrı bir eklenti">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg cur"><a href="ref-costmap.html" aria-current="page">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">C · Paket referansı</p><h1>costmap_2d ve katmanları</h1></header>
+<section id="costmap-ref">
+<h2>costmap_2d</h2>
+<p><code>costmap_2d</code>, "buradan geçmek ne kadar tehlikeli" haritasını (costmap) katman katman kurar: harita, canlı sensör verisi, güvenlik payı (inflation) her biri ayrı bir eklentidir ve üst üste bindirilir. Kavramsal anlatım için <a href="harita-ve-navigasyon.html#navigasyon">Navigasyon (move_base)</a> bölümüne bak; burada costmap'in kendisi ve <strong>4 katmanın tamamı</strong> için gerçek parametre listesi var.</p>
+<div class="call"><b>Bu sayfadaki değerler nereden geliyor?</b>
+<p>ROS Noetic'in <code>costmap_2d</code> kaynak kodundan (<code>ros-planning/navigation</code>, bu makinede kurulu olan <code>1.17.3</code> sürümünün etiketi: <code>costmap_2d_ros.cpp</code> ve <code>plugins/*.cpp</code>) ve kurulu paketin dynamic_reconfigure tanımlarından. Adı geçmeyen her parametre kaynaktaki varsayılanı alır.</p></div>
+
+<h3>Çerçeve ve zamanlama</h3>
+<p></p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="cm-global_frame"><td><code>global_frame</code></td><td>string</td><td class="n"><code>&quot;map&quot;</code></td><td class="n">—</td><td>Costmap&#x27;in çalıştığı global çerçeve (global costmap için <code>map</code>, yerel için genelde <code>odom</code>).</td></tr>
+<tr id="cm-robot_base_frame"><td><code>robot_base_frame</code></td><td>string</td><td class="n"><code>&quot;base_link&quot;</code></td><td class="n">—</td><td>Robot gövdesinin çerçeve adı.</td></tr>
+<tr id="cm-transform_tolerance"><td><code>transform_tolerance</code></td><td>double</td><td class="n"><code>0.3</code></td><td class="n">0 … 10</td><td>TF verisinin tolere edilebilir gecikmesi (sn).</td></tr>
+<tr id="cm-update_frequency"><td><code>update_frequency</code></td><td>double</td><td class="n"><code>5</code></td><td class="n">0 … 100</td><td>Costmap&#x27;in güncellenme hızı (Hz).</td></tr>
+<tr id="cm-publish_frequency"><td><code>publish_frequency</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … 100</td><td>Görselleştirme için costmap&#x27;in yayınlanma hızı (Hz); 0 yayınlamaz.</td></tr>
+</tbody></table></div>
+<h3>Boyut ve ayak izi</h3>
+<p></p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="cm-width"><td><code>width</code></td><td>int</td><td class="n"><code>10</code></td><td class="n">0 … ∞</td><td>Costmap genişliği (m).</td></tr>
+<tr id="cm-height"><td><code>height</code></td><td>int</td><td class="n"><code>10</code></td><td class="n">0 … ∞</td><td>Costmap yüksekliği (m).</td></tr>
+<tr id="cm-resolution"><td><code>resolution</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">0 … 50</td><td>Hücre boyutu (m).</td></tr>
+<tr id="cm-origin_x"><td><code>origin_x</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>Costmap&#x27;in sol-alt köşesinin global çerçevedeki x konumu (m).</td></tr>
+<tr id="cm-origin_y"><td><code>origin_y</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>Costmap&#x27;in sol-alt köşesinin global çerçevedeki y konumu (m).</td></tr>
+<tr id="cm-rolling_window"><td><code>rolling_window</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise costmap robotla birlikte kayan bir pencere olur (yerel costmap için tipiktir).</td></tr>
+<tr id="cm-footprint"><td><code>footprint</code></td><td>list</td><td class="n"><code>&quot;[]&quot;</code></td><td class="n">—</td><td>Robotun gövde çokgeni, <code>[[x1,y1],[x2,y2],…]</code> biçiminde, robot merkezine göre. Verilirse <code>robot_radius</code>&#x27;u geçersiz kılar.</td></tr>
+<tr id="cm-robot_radius"><td><code>robot_radius</code></td><td>double</td><td class="n"><code>0.46</code></td><td class="n">0 … 10</td><td>Dairesel robotlar için yarıçap (m); yalnızca <code>footprint</code> boşsa kullanılır.</td></tr>
+<tr id="cm-footprint_padding"><td><code>footprint_padding</code></td><td>double</td><td class="n"><code>0.01</code></td><td class="n">—</td><td>Ayak izine her yönde eklenecek pay (m).</td></tr>
+</tbody></table></div>
+<h3>Genel davranış</h3>
+<p></p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="cm-plugins"><td><code>plugins</code></td><td>list</td><td class="n"><code>(verilmezse eski düzen)</code></td><td class="n">—</td><td>Sırayla uygulanacak katman eklentileri listesi (ör. <code>static_layer</code>, <code>obstacle_layer</code>, <code>inflation_layer</code>). Verilmezse costmap eski (Hydro öncesi) düzene döner ve bir uyarı basar: <code>static_map: true</code> ise <code>static_layer</code>, her durumda <code>obstacle_layer</code> (<code>map_type: voxel</code> ise voxel katmanı) ve <code>inflation_layer</code> kurulur; eski üst düzey parametreler bu katmanlara taşınır.</td></tr>
+<tr id="cm-always_send_full_costmap"><td><code>always_send_full_costmap</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise her güncellemede costmap&#x27;in tamamı yayınlanır; false ise yalnızca değişen kısım (<code>~costmap_updates</code>).</td></tr>
+<tr id="cm-track_unknown_space"><td><code>track_unknown_space</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise &quot;bilinmiyor&quot; bölgeler ayrı bir durum olarak tutulur (yalnızca hiçbir katman ezmemişse); katmanların çoğu bunu kendi ayarıyla ezer.</td></tr>
+<tr id="cm-observation_sources"><td><code>observation_sources</code></td><td>string</td><td class="n"><code>&quot;&quot;</code></td><td class="n">—</td><td>Eski (Hydro öncesi) stil engel kaynağı tanımı; katman tabanlı costmap&#x27;lerde bunun yerine her katmanın kendi <code>observation_sources</code>&#x27;u kullanılır.</td></tr>
+</tbody></table></div>
+
+<h3 id="static-layer">Katman: static_layer</h3>
+<h3>static_layer</h3>
+<p>Haritayı (<code>map_server</code>&#x27;dan ya da bir topic&#x27;ten) costmap&#x27;e işleyen katman. Genelde yalnızca global costmap&#x27;te kullanılır.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="sl-map_topic"><td><code>map_topic</code></td><td>string</td><td class="n"><code>&quot;map&quot;</code></td><td class="n">—</td><td>Haritanın alınacağı topic.</td></tr>
+<tr id="sl-first_map_only"><td><code>first_map_only</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise yalnızca ilk haritayı işler, sonraki güncellemeleri yok sayar.</td></tr>
+<tr id="sl-subscribe_to_updates"><td><code>subscribe_to_updates</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise haritanın yalnızca değişen kısımlarını taşıyan <code>~&lt;topic&gt;_updates</code> topic&#x27;ine de abone olur.</td></tr>
+<tr id="sl-track_unknown_space"><td><code>track_unknown_space</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>true ise haritadaki bilinmeyen hücreler costmap&#x27;te de bilinmeyen kalır; false ise boş sayılır.</td></tr>
+<tr id="sl-use_maximum"><td><code>use_maximum</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>false (varsayılan) ise bu katman kendi değerlerini ana costmap&#x27;e doğrudan yazar; true ise mevcut değerle maksimumunu alır (static katman ilk katman değilse kullanışlıdır).</td></tr>
+<tr id="sl-trinary_costmap"><td><code>trinary_costmap</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>true ise hücreler yalnızca boş/dolu/bilinmiyor (üçlü) olarak işlenir; false ise ara maliyet değerleri de taşınır.</td></tr>
+<tr id="sl-lethal_cost_threshold"><td><code>lethal_cost_threshold</code></td><td>int</td><td class="n"><code>100</code></td><td class="n">—</td><td>Harita değeri bu eşik ya da üstündeyse hücre &quot;ölümcül&quot; (kesin engel) sayılır.</td></tr>
+<tr id="sl-unknown_cost_value"><td><code>unknown_cost_value</code></td><td>int</td><td class="n"><code>-1</code></td><td class="n">—</td><td>Haritada bu değere sahip hücreler &quot;bilinmiyor&quot; sayılır.</td></tr>
+</tbody></table></div>
+
+<h3 id="obstacle-layer">Katman: obstacle_layer</h3>
+<h3>obstacle_layer: genel</h3>
+<p>Lidar/nokta bulutu gibi canlı sensör verisinden engel işleyen katman.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="ob-observation_sources"><td><code>observation_sources</code></td><td>string</td><td class="n"><code>&quot;&quot;</code></td><td class="n">—</td><td>Bu katmanın kullanacağı gözlem kaynaklarının (topic grupları) adları, boşlukla ayrılmış.</td></tr>
+<tr id="ob-track_unknown_space"><td><code>track_unknown_space</code></td><td>bool</td><td class="n"><code>üst costmap ile aynı</code></td><td class="n">—</td><td>Genelde ana costmap ayarından miras alınır.</td></tr>
+<tr id="ob-transform_tolerance"><td><code>transform_tolerance</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">—</td><td>TF verisinin tolere edilebilir gecikmesi (sn).</td></tr>
+<tr id="ob-obstacle_range"><td><code>obstacle_range</code></td><td>double</td><td class="n"><code>2.5</code></td><td class="n">0 … 50</td><td>Bu mesafeden (m) yakın algılanan noktalar engel olarak işaretlenir. Kaynak bazında da ezilebilir.</td></tr>
+<tr id="ob-raytrace_range"><td><code>raytrace_range</code></td><td>double</td><td class="n"><code>3</code></td><td class="n">0 … 50</td><td>Bu mesafeye (m) kadar, ölçümle sensör arasındaki boşluk temizlenir (ışın izleme). Kaynak bazında da ezilebilir.</td></tr>
+<tr id="ob-max_obstacle_height"><td><code>max_obstacle_height</code></td><td>double</td><td class="n"><code>2</code></td><td class="n">0 … 50</td><td>Bu yükseklikten (m) yüksek noktalar yok sayılır.</td></tr>
+<tr id="ob-min_obstacle_height"><td><code>min_obstacle_height</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … 50</td><td>Bu yükseklikten (m) alçak noktalar yok sayılır.</td></tr>
+<tr id="ob-combination_method"><td><code>combination_method</code></td><td>int</td><td class="n"><code>1</code></td><td class="n">—</td><td>Bu katmanın ana costmap&#x27;e nasıl yazacağı: 0 üzerine yazar, 1 (varsayılan) mevcut değerle maksimumu alır; başka bir değer (ör. 99) katmanın hiçbir şey yazmamasını sağlar.</td></tr>
+<tr id="ob-enabled"><td><code>enabled</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Katmanı açar/kapatır.</td></tr>
+<tr id="ob-footprint_clearing_enabled"><td><code>footprint_clearing_enabled</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>true ise robotun kendi ayak izinin içine düşen ölçümler engel sayılmaz.</td></tr>
+</tbody></table></div>
+<h3>obstacle_layer: her gözlem kaynağı için</h3>
+<p><code>observation_sources</code>&#x27;ta adı geçen her kaynağın (ör. <code>scan</code>) kendi alt parametre grubu vardır: <code>&lt;obstacle_layer_adı&gt;/&lt;kaynak_adı&gt;/&lt;parametre&gt;</code>.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="obs-topic"><td><code>topic</code></td><td>string</td><td class="n"><code>(kaynak adıyla aynı)</code></td><td class="n">—</td><td>Kaynağın dinleyeceği topic; verilmezse kaynak adıyla aynı kabul edilir.</td></tr>
+<tr id="obs-sensor_frame"><td><code>sensor_frame</code></td><td>string</td><td class="n"><code>&quot;&quot;</code></td><td class="n">—</td><td>Sensörün çerçevesi; boşsa mesajın kendi <code>frame_id</code>&#x27;si kullanılır.</td></tr>
+<tr id="obs-observation_persistence"><td><code>observation_persistence</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>Gözlemlerin ne kadar süre (sn) saklanacağı; 0 yalnızca en son gözlemi tutar.</td></tr>
+<tr id="obs-expected_update_rate"><td><code>expected_update_rate</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>Kaynağın beklenen güncelleme hızı (Hz); 0 denetim yapılmaz demektir.</td></tr>
+<tr id="obs-data_type"><td><code>data_type</code></td><td>string</td><td class="n"><code>&quot;PointCloud&quot;</code></td><td class="n">—</td><td>Mesaj türü: <code>PointCloud</code>, <code>PointCloud2</code> ya da <code>LaserScan</code>.</td></tr>
+<tr id="obs-min_obstacle_height"><td><code>min_obstacle_height</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>Bu kaynak için minimum yükseklik (m); genel ayarı ezer.</td></tr>
+<tr id="obs-max_obstacle_height"><td><code>max_obstacle_height</code></td><td>double</td><td class="n"><code>2</code></td><td class="n">—</td><td>Bu kaynak için maksimum yükseklik (m); genel ayarı ezer.</td></tr>
+<tr id="obs-inf_is_valid"><td><code>inf_is_valid</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise <code>LaserScan</code>&#x27;deki <code>inf</code> (sonsuz) ölçümler menzil sonuna kadar boş alan olarak işlenir; false ise atılır.</td></tr>
+<tr id="obs-clearing"><td><code>clearing</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise bu kaynağın ölçümleri, aralarındaki boşluğu temizlemek için kullanılır.</td></tr>
+<tr id="obs-marking"><td><code>marking</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>true ise bu kaynağın ölçümleri engel işaretlemek için kullanılır.</td></tr>
+</tbody></table></div>
+<pre><code># örnek: iki gözlem kaynağı
+obstacle_layer:
+  observation_sources: scan bumper
+  scan:
+    topic: /scan
+    data_type: LaserScan
+    marking: true
+    clearing: true
+  bumper:
+    topic: /bumper_points
+    data_type: PointCloud2
+    marking: true
+    clearing: false</code></pre>
+
+<h3 id="inflation-layer">Katman: inflation_layer</h3>
+<h3>inflation_layer</h3>
+<p>Engellerin çevresine, robotun ona ne kadar yaklaşabileceğini gösteren bir &quot;ceza&quot; bulutu (şişirme) ekler.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="inf-inflation_radius"><td><code>inflation_radius</code></td><td>double</td><td class="n"><code>0.55</code></td><td class="n">0 … 50</td><td>Engel çevresinde sıfırdan büyük ceza uygulanacak yarıçap (m).</td></tr>
+<tr id="inf-cost_scaling_factor"><td><code>cost_scaling_factor</code></td><td>double</td><td class="n"><code>10</code></td><td class="n">0 … 100</td><td>Şu formülle uzaklaştıkça maliyeti düşürür: <code>252 × exp(-1,0 × cost_scaling_factor × (mesafe − iç_yarıçap))</code> (iç yarıçap: footprint&#x27;in içine sığan en büyük daire). Büyük değer maliyeti hızlı düşürür (robot engele daha yakın gidebilir), küçük değer geniş bir tampon bırakır.</td></tr>
+<tr id="inf-inflate_unknown"><td><code>inflate_unknown</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise bilinmeyen hücreler de şişirilir (engelmiş gibi ceza alır).</td></tr>
+<tr id="inf-enabled"><td><code>enabled</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Katmanı açar/kapatır.</td></tr>
+</tbody></table></div>
+
+<h3 id="voxel-layer">Katman: voxel_layer (isteğe bağlı, 3B)</h3>
+<h3>voxel_layer</h3>
+<p>3B nokta bulutu verisini bir voksel (hacim öğesi) ızgarasında tutan, sonra 2B costmap&#x27;e izdüşüren katman; <code>obstacle_layer</code>&#x27;ın 3B hâlidir.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="vx-origin_z"><td><code>origin_z</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … ∞</td><td>Voksel ızgarasının taban yüksekliği (m).</td></tr>
+<tr id="vx-z_resolution"><td><code>z_resolution</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … 50</td><td>Dikey yöndeki hücre boyutu (m).</td></tr>
+<tr id="vx-z_voxels"><td><code>z_voxels</code></td><td>int</td><td class="n"><code>10</code></td><td class="n">0 … 16</td><td>Dikey sütun başına voksel sayısı; ızgaranın toplam yüksekliği <code>z_resolution × z_voxels</code>&#x27;tir.</td></tr>
+<tr id="vx-unknown_threshold"><td><code>unknown_threshold</code></td><td>int</td><td class="n"><code>15</code></td><td class="n">0 … 16</td><td>Bir sütunun &quot;bilinen&quot; sayılması için içinde izin verilen en çok bilinmeyen voksel sayısı; daha fazlası varsa sütun bilinmiyor sayılır.</td></tr>
+<tr id="vx-mark_threshold"><td><code>mark_threshold</code></td><td>int</td><td class="n"><code>0</code></td><td class="n">0 … 16</td><td>Bir sütunun &quot;boş&quot; sayılması için içinde izin verilen en çok dolu voksel sayısı; daha fazlası varsa sütun engel sayılır (varsayılan 0: tek dolu voksel yeter).</td></tr>
+<tr id="vx-combination_method"><td><code>combination_method</code></td><td>int</td><td class="n"><code>1</code></td><td class="n">0 … 2</td><td>Bu katmanın ana costmap&#x27;e nasıl yazacağı: 0 üzerine yazar, 1 (varsayılan) mevcut değerle maksimumu alır; başka bir değer (ör. 99) katmanın hiçbir şey yazmamasını sağlar.</td></tr>
+<tr id="vx-max_obstacle_height"><td><code>max_obstacle_height</code></td><td>double</td><td class="n"><code>2</code></td><td class="n">0 … 50</td><td>Bu yükseklikten (m) yüksek noktalar yok sayılır; ızgaranın tepesi (<code>origin_z + z_resolution × z_voxels</code>) bundan alçaksa ızgara sınırı geçerlidir.</td></tr>
+<tr id="vx-publish_voxel_map"><td><code>publish_voxel_map</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise 3B voksel ızgarasını da (görselleştirme için) yayınlar.</td></tr>
+<tr id="vx-enabled"><td><code>enabled</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Katmanı açar/kapatır.</td></tr>
+<tr id="vx-footprint_clearing_enabled"><td><code>footprint_clearing_enabled</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>true ise robotun kendi ayak izinin içine düşen ölçümler engel sayılmaz.</td></tr>
+</tbody></table></div>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="ref-amcl-move-base.html"><small>← Önceki</small>AMCL ve move_base</a><a class="next" href="planlayici-parametreleri.html"><small>Sonraki →</small>DWA ve TEB</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

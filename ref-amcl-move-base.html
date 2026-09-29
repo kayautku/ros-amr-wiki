@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AMCL ve move_base parametreleri · ROS AMR Wiki</title>
+<meta name="description" content="amcl, bilinen bir harita üzerinde robotun konumunu bulan lokalizasyon node&#x27;udur (Adaptive Monte Carlo Localization). Kavramsal anlatımı için Lokalizasyon (AMCL) bölümüne ">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg cur"><a href="ref-amcl-move-base.html" aria-current="page">AMCL ve move_base</a><ul class="sub"><li><a href="#amcl-ref">AMCL</a></li><li><a href="#move-base-ref">move_base</a></li></ul></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">C · Paket referansı</p><h1>AMCL ve move_base parametreleri</h1></header>
+<section id="amcl-ref">
+<h2>AMCL</h2>
+<p><code>amcl</code>, bilinen bir harita üzerinde robotun konumunu bulan lokalizasyon node'udur (Adaptive Monte Carlo Localization). Kavramsal anlatımı için <a href="harita-ve-navigasyon.html#lokalizasyon">Lokalizasyon (AMCL)</a> bölümüne bak; burada <strong>52 parametrenin tamamı</strong> var.</p>
+<div class="call"><b>Bu sayfadaki değerler nereden geliyor?</b>
+<p>Parametre adları ve varsayılanlar ROS Noetic'in <code>amcl</code> kaynak kodundan (<code>ros-planning/navigation</code>, bu makinede kurulu olan <code>1.17.3</code> sürümünün etiketi, <code>amcl_node.cpp</code>) çıkarıldı: her parametre, kodda okunduğu <code>nh.param(...)</code> çağrısından ve o çağrının varsayılan değerinden alındı. Bazı parametreler (belirtilenler) ayrıca çalışırken <code>rqt_reconfigure</code> ile değiştirilebilir.</p></div>
+<h4>Abone olunan topic'ler</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>scan</code></td><td><code>sensor_msgs/LaserScan</code></td></tr>
+<tr><td><code>tf</code></td><td><code>tf2_msgs/TFMessage</code></td></tr>
+<tr><td><code>initialpose</code></td><td><code>geometry_msgs/PoseWithCovarianceStamped</code></td></tr>
+<tr><td><code>map</code></td><td><code>nav_msgs/OccupancyGrid</code> (yalnızca <code>use_map_topic: true</code> ise)</td></tr>
+</tbody></table></div>
+<h4>Yayınlanan topic'ler</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>amcl_pose</code></td><td><code>geometry_msgs/PoseWithCovarianceStamped</code> — robotun harita üzerindeki tahmini konumu</td></tr>
+<tr><td><code>particlecloud</code></td><td><code>geometry_msgs/PoseArray</code> — parçacık filtresinin o anki tüm konum tahminleri</td></tr>
+<tr><td><code>tf</code> (<code>map→odom</code>)</td><td><code>tf2_msgs/TFMessage</code> — <code>tf_broadcast: true</code> iken</td></tr>
+</tbody></table></div>
+<h4>Sunulan servisler</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>global_localization</code></td><td><code>std_srvs/Empty</code> — parçacıkları haritaya rastgele yeniden dağıtır (konumu tamamen bilmiyorsan)</td></tr>
+<tr><td><code>request_nomotion_update</code></td><td><code>std_srvs/Empty</code> — robot hareket etmeden bir filtre güncellemesi zorlar</td></tr>
+<tr><td><code>set_map</code></td><td><code>nav_msgs/SetMap</code> — haritayı ve başlangıç konumunu tek çağrıda ayarlar</td></tr>
+</tbody></table></div>
+
+<h3>Genel ve çerçeveler</h3>
+<p>AMCL&#x27;in hangi çerçeveleri kullandığı ve haritayı nasıl aldığı.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="amcl-odom_frame_id"><td><code>odom_frame_id</code></td><td>string</td><td class="n"><code>&quot;odom&quot;</code></td><td class="n">—</td><td>Odometri çerçevesinin adı.</td></tr>
+<tr id="amcl-base_frame_id"><td><code>base_frame_id</code></td><td>string</td><td class="n"><code>&quot;base_link&quot;</code></td><td class="n">—</td><td>Robot gövdesinin çerçeve adı.</td></tr>
+<tr id="amcl-global_frame_id"><td><code>global_frame_id</code></td><td>string</td><td class="n"><code>&quot;map&quot;</code></td><td class="n">—</td><td>AMCL&#x27;in yayınladığı konum çerçevesinin adı (genelde <code>map</code>).</td></tr>
+<tr id="amcl-use_map_topic"><td><code>use_map_topic</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise harita <code>/map</code> topic&#x27;inden dinlenir; false ise <code>static_map</code> servisiyle bir kez istenir.</td></tr>
+<tr id="amcl-first_map_only"><td><code>first_map_only</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise yalnızca ilk gelen harita kullanılır, sonraki <code>/map</code> güncellemeleri yok sayılır.</td></tr>
+<tr id="amcl-tf_broadcast"><td><code>tf_broadcast</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>false yaparsan AMCL <code>map→odom</code> dönüşümünü yayınlamaz; bunu başka bir node&#x27;un yapması gerekir.</td></tr>
+</tbody></table></div>
+<h3>Başlangıç konumu</h3>
+<p>Parçacık filtresinin ilk dağılımı bu konum etrafında (Gauss dağılımıyla) kurulur.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="amcl-initial_pose_x"><td><code>initial_pose_x</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>Başlangıç konumu, x (m).</td></tr>
+<tr id="amcl-initial_pose_y"><td><code>initial_pose_y</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>Başlangıç konumu, y (m).</td></tr>
+<tr id="amcl-initial_pose_a"><td><code>initial_pose_a</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>Başlangıç yönü, yaw (rad).</td></tr>
+<tr id="amcl-initial_cov_xx"><td><code>initial_cov_xx</code></td><td>double</td><td class="n"><code>0.25</code></td><td class="n">—</td><td>Başlangıç konumunun x yönündeki belirsizliği (varyans, m²).</td></tr>
+<tr id="amcl-initial_cov_yy"><td><code>initial_cov_yy</code></td><td>double</td><td class="n"><code>0.25</code></td><td class="n">—</td><td>Başlangıç konumunun y yönündeki belirsizliği (varyans, m²).</td></tr>
+<tr id="amcl-initial_cov_aa"><td><code>initial_cov_aa</code></td><td>double</td><td class="n"><code>0.0685</code></td><td class="n">—</td><td>Başlangıç yönünün belirsizliği (varyans, rad²).</td></tr>
+</tbody></table></div>
+<h3>Parçacık filtresi (KLD örnekleme)</h3>
+<p>AMCL, konumu sabit sayıda değil, &quot;yeterince iyi temsil edene kadar&quot; değişen sayıda parçacıkla arar (KLD örnekleme).</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="amcl-min_particles"><td><code>min_particles</code></td><td>int</td><td class="n"><code>100</code></td><td class="n">0 … 1000</td><td>En az parçacık sayısı.</td></tr>
+<tr id="amcl-max_particles"><td><code>max_particles</code></td><td>int</td><td class="n"><code>5000</code></td><td class="n">0 … 10000</td><td>En çok parçacık sayısı. Büyütmek daha güvenilir ama daha yavaş.</td></tr>
+<tr id="amcl-kld_err"><td><code>kld_err</code></td><td>double</td><td class="n"><code>0.01</code></td><td class="n">0 … 1</td><td>Gerçek dağılımla örneklenen dağılım arasına izin verilen maksimum hata.</td></tr>
+<tr id="amcl-kld_z"><td><code>kld_z</code></td><td>double</td><td class="n"><code>0.99</code></td><td class="n">0 … 1</td><td>1 − p için üst standart normal kuantili; p, örneklenen dağılımın hatasının <code>kld_err</code>&#x27;ün altında kalma olasılığıdır.</td></tr>
+<tr id="amcl-resample_interval"><td><code>resample_interval</code></td><td>int</td><td class="n"><code>2</code></td><td class="n">0 … 20</td><td>Kaç filtre güncellemesinde bir yeniden örnekleme (resampling) yapılacağı.</td></tr>
+<tr id="amcl-selective_resampling"><td><code>selective_resampling</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise etkin örnek büyüklüğü (ESS) düşük olmadıkça yeniden örnekleme atlanır; parçacık çeşitliliğini korur.</td></tr>
+<tr id="amcl-recovery_alpha_slow"><td><code>recovery_alpha_slow</code></td><td>double</td><td class="n"><code>0.001</code></td><td class="n">0 … 0.5</td><td>Yavaş hareketli ortalama ağırlık filtresinin üstel azalma oranı. <code>recovery_alpha_fast</code> ile birlikte, ölçüm uyumu ani düştüğünde (robot kaçırıldığında ya da kaybolduğunda) rastgele parçacık ekleyip eklemeyeceğine karar verir. Kurtarmayı kapatmak için ikisini de 0 yap; yalnızca birini 0 yapmak kapatmaz. Node başlarken bu kaynak kod varsayılanı geçerlidir; dinamik ayar tanımındaki varsayılan ise 0&#x27;dır, bu yüzden <code>rqt_reconfigure</code>&#x27;da Restore defaults kurtarmayı kapatır.</td></tr>
+<tr id="amcl-recovery_alpha_fast"><td><code>recovery_alpha_fast</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … 1</td><td>Hızlı hareketli ortalama ağırlık filtresinin üstel azalma oranı; <code>recovery_alpha_slow</code>&#x27;dan büyük olmalı. Kısa vadeli ortalama uzun vadeliden düştükçe o oranda rastgele parçacık eklenir. Kurtarmayı kapatmak için ikisini de 0 yap. Node başlarken bu kaynak kod varsayılanı geçerlidir; dinamik ayar tanımındaki varsayılan ise 0&#x27;dır, bu yüzden <code>rqt_reconfigure</code>&#x27;da Restore defaults kurtarmayı kapatır.</td></tr>
+</tbody></table></div>
+<h3>Hareket (odometri) modeli</h3>
+<p>Robot hareket ettikçe parçacıkların nasıl &quot;yayılacağını&quot; (belirsizleşeceğini) tanımlar.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="amcl-odom_model_type"><td><code>odom_model_type</code></td><td>string</td><td class="n"><code>&quot;diff&quot;</code></td><td class="n">—</td><td>Sürüş modeli: <code>diff</code>, <code>omni</code>, <code>diff-corrected</code>, <code>omni-corrected</code>. <code>-corrected</code> türleri eski modellerdeki bir hatanın düzeltilmiş halidir; <code>odom_alphaN</code> varsayılanları eski modele göredir, düzeltilmiş modelde genelde daha küçük değerler gerekir.</td></tr>
+<tr id="amcl-odom_alpha1"><td><code>odom_alpha1</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … 10</td><td>Dönüş hareketinden kaynaklanan dönüş gürültüsü tahmini.</td></tr>
+<tr id="amcl-odom_alpha2"><td><code>odom_alpha2</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … 10</td><td>Öteleme hareketinden kaynaklanan dönüş gürültüsü tahmini.</td></tr>
+<tr id="amcl-odom_alpha3"><td><code>odom_alpha3</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … 10</td><td>Öteleme hareketinden kaynaklanan öteleme gürültüsü tahmini.</td></tr>
+<tr id="amcl-odom_alpha4"><td><code>odom_alpha4</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … 10</td><td>Dönüş hareketinden kaynaklanan öteleme gürültüsü tahmini.</td></tr>
+<tr id="amcl-odom_alpha5"><td><code>odom_alpha5</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … 10</td><td>Yalnızca <code>omni</code> modelinde: hareket yönüne dik öteleme eğilimi gürültüsü.</td></tr>
+<tr id="amcl-update_min_d"><td><code>update_min_d</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … 5</td><td>Bir filtre güncellemesi için robotun kat etmesi gereken en az mesafe (m).</td></tr>
+<tr id="amcl-update_min_a"><td><code>update_min_a</code></td><td>double</td><td class="n"><code>0.5236</code></td><td class="n">0 … 6.28319</td><td>Bir filtre güncellemesi için robotun dönmesi gereken en az açı (rad).</td></tr>
+<tr id="amcl-transform_tolerance"><td><code>transform_tolerance</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … 2</td><td>Yayınlanan <code>map→odom</code> dönüşümünün ne kadar ileri bir zamana &quot;damgalanacağı&quot; (sn); TF sorgularının küçük gecikmelerde başarısız olmamasını sağlar.</td></tr>
+</tbody></table></div>
+<h3>Lazer (algı) modeli</h3>
+<p>Bir parçacığın ne kadar &quot;doğru&quot; olduğu, o parçacığın konumundan beklenen taramayla gerçek taramanın ne kadar örtüştüğüne bakılarak puanlanır.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="amcl-laser_model_type"><td><code>laser_model_type</code></td><td>string</td><td class="n"><code>&quot;likelihood_field&quot;</code></td><td class="n">—</td><td>Model: <code>beam</code>, <code>likelihood_field</code> (varsayılan, daha hızlı) ya da <code>likelihood_field_prob</code>.</td></tr>
+<tr id="amcl-laser_min_range"><td><code>laser_min_range</code></td><td>double</td><td class="n"><code>-1</code></td><td class="n">-1 … 1000</td><td>Dikkate alınacak en küçük tarama mesafesi; −1,0 lazerin kendi bildirdiği minimumu kullanır.</td></tr>
+<tr id="amcl-laser_max_range"><td><code>laser_max_range</code></td><td>double</td><td class="n"><code>-1</code></td><td class="n">-1 … 1000</td><td>Dikkate alınacak en büyük tarama mesafesi; −1,0 lazerin kendi bildirdiği maksimumu kullanır.</td></tr>
+<tr id="amcl-laser_max_beams"><td><code>laser_max_beams</code></td><td>int</td><td class="n"><code>30</code></td><td class="n">0 … 250</td><td>Her taramadan puanlama için kaç ışının kullanılacağı (eşit aralıklı örnekleme). Azaltmak hesap yükünü düşürür.</td></tr>
+<tr id="amcl-laser_z_hit"><td><code>laser_z_hit</code></td><td>double</td><td class="n"><code>0.95</code></td><td class="n">0 … 1</td><td>Ölçümün haritadaki gerçek bir engele isabet etmesini temsil eden bileşenin karışım ağırlığı (üç modelde de kullanılır).</td></tr>
+<tr id="amcl-laser_z_short"><td><code>laser_z_short</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … 1</td><td>Ölçümün beklenenden daha kısa çıkma (beklenmeyen engel) olasılığının ağırlığı; yalnızca <code>beam</code> modelinde kullanılır.</td></tr>
+<tr id="amcl-laser_z_max"><td><code>laser_z_max</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">0 … 1</td><td>Ölçümün menzil sonuna takılma (maksimum mesafe) olasılığının ağırlığı; yalnızca <code>beam</code> modelinde kullanılır.</td></tr>
+<tr id="amcl-laser_z_rand"><td><code>laser_z_rand</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">0 … 1</td><td>Rastgele/açıklanamayan ölçüm olasılığının ağırlığı.</td></tr>
+<tr id="amcl-laser_sigma_hit"><td><code>laser_sigma_hit</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … 10</td><td><code>z_hit</code> bileşeni için Gauss modelinin standart sapması (m).</td></tr>
+<tr id="amcl-laser_lambda_short"><td><code>laser_lambda_short</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … 10</td><td><code>z_short</code> bileşeni için üstel dağılımın parametresi; yalnızca <code>beam</code> modelinde kullanılır.</td></tr>
+<tr id="amcl-laser_likelihood_max_dist"><td><code>laser_likelihood_max_dist</code></td><td>double</td><td class="n"><code>2</code></td><td class="n">0 … 20</td><td><code>likelihood_field</code> modelinde, harita üzerinde önceden hesaplanacak en büyük engel mesafesi (m).</td></tr>
+<tr id="amcl-do_beamskip"><td><code>do_beamskip</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>Yalnızca <code>likelihood_field_prob</code> modelinde ve filtre yakınsadıktan sonra: parçacıkların çoğunda haritayla uyuşmayan ışınlar (ör. dinamik engeller) puanlamadan atlanır.</td></tr>
+<tr id="amcl-beam_skip_distance"><td><code>beam_skip_distance</code></td><td>double</td><td class="n"><code>0.5</code></td><td class="n">0 … 2</td><td>Bir ışının bir parçacık için haritayla &quot;uyuşuyor&quot; sayılması için, ölçülen noktanın haritadaki en yakın engele olan uzaklığı bundan (m) küçük olmalı.</td></tr>
+<tr id="amcl-beam_skip_threshold"><td><code>beam_skip_threshold</code></td><td>double</td><td class="n"><code>0.3</code></td><td class="n">0 … 1</td><td>Bir ışının kullanılması için, o ışının haritayla uyuştuğu parçacıkların oranı bu değerden büyük olmalı; değilse ışın atlanır.</td></tr>
+<tr id="amcl-beam_skip_error_threshold"><td><code>beam_skip_error_threshold</code></td><td>double</td><td class="n"><code>0.9</code></td><td class="n">—</td><td>Atlanan ışınların oranı bu değere ulaşırsa filtre muhtemelen yanlış konuma yakınsamıştır: AMCL bir uyarı basar ve o taramada ışın atlamadan tüm ışınları kullanır.</td></tr>
+</tbody></table></div>
+<h3>Yayın ve tanılama</h3>
+<p>Görselleştirme, kayıt ve uyarı hızları.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="amcl-gui_publish_rate"><td><code>gui_publish_rate</code></td><td>double</td><td class="n"><code>-1</code></td><td class="n">-1 … 100</td><td>Görselleştirme mesajlarının yayın hızı (Hz); −1,0 kapalı demektir.</td></tr>
+<tr id="amcl-save_pose_rate"><td><code>save_pose_rate</code></td><td>double</td><td class="n"><code>0.5</code></td><td class="n">-1 … 10</td><td>Son tahmini konumun parametre sunucusuna kaydedilme hızı (Hz); sonraki açılışta başlangıç konumu olarak kullanılabilir. −1,0 kapalı demektir.</td></tr>
+<tr id="amcl-std_warn_level_x"><td><code>std_warn_level_x</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">—</td><td>Konum belirsizliğinin (std sapma, m) x&#x27;te bu değeri aşması durumda uyarı loglanır.</td></tr>
+<tr id="amcl-std_warn_level_y"><td><code>std_warn_level_y</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">—</td><td>Konum belirsizliğinin (std sapma, m) y&#x27;de bu değeri aşması durumda uyarı loglanır.</td></tr>
+<tr id="amcl-std_warn_level_yaw"><td><code>std_warn_level_yaw</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Yön belirsizliğinin (std sapma, rad) bu değeri aşması durumda uyarı loglanır.</td></tr>
+<tr id="amcl-force_update_after_initialpose"><td><code>force_update_after_initialpose</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise <code>initialpose</code> mesajı gelir gelmez (hareket beklemeden) bir filtre güncellemesi zorlanır.</td></tr>
+<tr id="amcl-force_update_after_set_map"><td><code>force_update_after_set_map</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise yeni harita geldiğinde (hareket beklemeden) bir filtre güncellemesi zorlanır.</td></tr>
+<tr id="amcl-bag_scan_period"><td><code>bag_scan_period</code></td><td>double</td><td class="n"><code>-1</code></td><td class="n">—</td><td>Yalnızca bag oynatırken: art arda taramalar arasına eklenecek gecikme (sn); −1,0 kapalı demektir.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="move-base-ref">
+<h2>move_base</h2>
+<p><code>move_base</code>, global ve yerel planlayıcıları, costmap'leri ve toparlanma davranışlarını bir araya getiren üst düzey navigasyon action sunucusudur. Kavramsal anlatım için <a href="harita-ve-navigasyon.html#navigasyon">Navigasyon (move_base)</a> bölümüne bak; burada <strong>17 parametrenin tamamı</strong> ve iki varsayılan toparlanma davranışının parametreleri var.</p>
+<h4>Action arayüzü</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>move_base</code></td><td><code>move_base_msgs/MoveBaseAction</code> — goal: <code>geometry_msgs/PoseStamped</code>, result: boş, feedback: o anki konum</td></tr>
+</tbody></table></div>
+<h4>Diğer topic ve servisler</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>move_base_simple/goal</code></td><td>abone, <code>geometry_msgs/PoseStamped</code> — sonucu izlemeden hızlıca hedef göndermek için (RViz'in <em>2D Nav Goal</em>'ı bunu kullanır)</td></tr>
+<tr><td><code>~clear_costmaps</code></td><td>servis, <code>std_srvs/Empty</code> — costmap'lerdeki tüm engelleri temizler</td></tr>
+<tr><td><code>~make_plan</code></td><td>servis, <code>nav_msgs/GetPlan</code> — robotu hareket ettirmeden bir plan hesaplar</td></tr>
+</tbody></table></div>
+
+<h3>Planlayıcı seçimi</h3>
+<p>move_base kendisi bir planlayıcı içermez; global ve yerel planlayıcıyı eklenti (plugin) olarak yükler.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="mb-base_global_planner"><td><code>base_global_planner</code></td><td>string</td><td class="n"><code>&quot;navfn/NavfnROS&quot;</code></td><td class="n">—</td><td>Global planlayıcı eklentisinin adı. Alternatifler: <code>global_planner/GlobalPlanner</code>, <code>carrot_planner/CarrotPlanner</code>.</td></tr>
+<tr id="mb-base_local_planner"><td><code>base_local_planner</code></td><td>string</td><td class="n"><code>&quot;base_local_planner/TrajectoryPlannerROS&quot;</code></td><td class="n">—</td><td>Yerel planlayıcı eklentisinin adı (ör. <code>dwa_local_planner/DWAPlannerROS</code>, <code>teb_local_planner/TebLocalPlannerROS</code>). Varsayılan, eski ve artık önerilmeyen <code>TrajectoryPlannerROS</code>&#x27;tur.</td></tr>
+<tr id="mb-recovery_behaviors"><td><code>recovery_behaviors</code></td><td>list</td><td class="n"><code>[conservative_reset, rotate_recovery, aggressive_reset, rotate_recovery]</code></td><td class="n">—</td><td>Sırayla denenecek toparlanma eklentileri. Verilmezse 4 adımlı varsayılan liste kullanılır: hafif costmap temizliği (kenarı <code>conservative_reset_dist</code> olan karenin dışı) → yerinde dönme → agresif costmap temizliği (kenarı çevrelenmiş yarıçapın 4 katı olan karenin dışı) → tekrar yerinde dönme. <code>clearing_rotation_allowed: false</code> iken iki dönme adımı atlanır.</td></tr>
+<tr id="mb-recovery_behavior_enabled"><td><code>recovery_behavior_enabled</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Toparlanma davranışlarını tamamen açar/kapatır.</td></tr>
+<tr id="mb-clearing_rotation_allowed"><td><code>clearing_rotation_allowed</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Yalnızca varsayılan toparlanma listesi kullanılıyorken: takılınca yerinde dönme denenip denenmeyeceği.</td></tr>
+</tbody></table></div>
+<h3>Döngü hızları ve sabır</h3>
+<p>Planlayıcıların ne sıklıkla çalıştığı ve ne kadar &quot;sabırlı&quot; olunacağı.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="mb-planner_frequency"><td><code>planner_frequency</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … 100</td><td>Global planın yenilenme hızı (Hz). 0 ise yalnızca yeni hedef geldiğinde ya da yerel planlayıcı yolun tıkandığını bildirdiğinde çalışır.</td></tr>
+<tr id="mb-controller_frequency"><td><code>controller_frequency</code></td><td>double</td><td class="n"><code>20</code></td><td class="n">0 … 100</td><td>Yerel planlayıcının çalışma ve <code>/cmd_vel</code> üretme hızı (Hz).</td></tr>
+<tr id="mb-planner_patience"><td><code>planner_patience</code></td><td>double</td><td class="n"><code>5</code></td><td class="n">0 … 100</td><td>Global planlayıcı geçerli bir plan bulamazsa, toparlanma davranışlarına geçmeden önce ne kadar (sn) denemeye devam edileceği.</td></tr>
+<tr id="mb-controller_patience"><td><code>controller_patience</code></td><td>double</td><td class="n"><code>15</code></td><td class="n">0 … 100</td><td>Yerel planlayıcı geçerli bir kontrol bulamazsa, toparlanma davranışlarına geçmeden önce ne kadar (sn) denemeye devam edileceği. Node başlarken bu kaynak kod varsayılanı (15) geçerlidir; dinamik ayar tanımındaki varsayılan ise 5&#x27;tir, <code>rqt_reconfigure</code>&#x27;da &quot;Restore defaults&quot; değeri 5&#x27;e çeker.</td></tr>
+<tr id="mb-max_planning_retries"><td><code>max_planning_retries</code></td><td>int</td><td class="n"><code>-1</code></td><td class="n">-1 … 1000</td><td>Toparlanma davranışlarına geçmeden önce global planlayıcının kaç kez yeniden çağrılacağı; −1 sınırsız demektir.</td></tr>
+</tbody></table></div>
+<h3>Salınım algılama</h3>
+<p>Robot aynı bölgede ileri geri gidip geliyorsa (salınım) bunu algılayıp toparlanmaya geçer.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="mb-oscillation_timeout"><td><code>oscillation_timeout</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … 60</td><td>Salınım sayılmadan önce izin verilen süre (sn); 0 bu denetimi kapatır.</td></tr>
+<tr id="mb-oscillation_distance"><td><code>oscillation_distance</code></td><td>double</td><td class="n"><code>0.5</code></td><td class="n">0 … 10</td><td>Salınım sayaçlarının sıfırlanması için robotun kat etmesi gereken en az mesafe (m).</td></tr>
+</tbody></table></div>
+<h3>Costmap ve plan servisleri</h3>
+<p><code>~make_plan</code> servisi ve costmap temizleme davranışıyla ilgili ayarlar.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="mb-shutdown_costmaps"><td><code>shutdown_costmaps</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise move_base etkin olmadığı sürelerde costmap&#x27;leri kapatıp kaynak tasarrufu yapar.</td></tr>
+<tr id="mb-conservative_reset_dist"><td><code>conservative_reset_dist</code></td><td>double</td><td class="n"><code>3</code></td><td class="n">0 … 50</td><td>Varsayılan &quot;hafif&quot; toparlanma davranışının <code>reset_distance</code>&#x27;ı: robot merkezli, kenarı bu uzunlukta (m) bir karenin dışındaki engeller temizlenir (varsayılanla robottan ±1,5 m ötesi).</td></tr>
+<tr id="mb-make_plan_clear_costmap"><td><code>make_plan_clear_costmap</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td><code>~make_plan</code> servisi çağrıldığında global costmap&#x27;i temizleyip temizlemeyeceği.</td></tr>
+<tr id="mb-make_plan_add_unreachable_goal"><td><code>make_plan_add_unreachable_goal</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Hedefe ulaşılamıyorsa, <code>~make_plan</code> servisinin döndürdüğü plana en azından orijinal hedefi ekleyip eklemeyeceği.</td></tr>
+<tr id="mb-clearing_radius"><td><code>clearing_radius</code></td><td>double</td><td class="n"><code>—</code></td><td class="n">—</td><td>Yalnızca varsayılan toparlanma davranışında: robotun etrafında engellerin zorla temizleneceği yarıçap (m); varsayılanı costmap&#x27;in &quot;çevrelenmiş yarıçapı&quot;dır (footprint&#x27;i tamamen kapsayan daire).</td></tr>
+</tbody></table></div>
+<p>Yerel planlayıcıların (DWA, TEB) tüm parametreleri için ayrı sayfaya bak: <a href="planlayici-parametreleri.html">DWA ve TEB parametreleri</a>.</p>
+
+<h3>Toparlanma (recovery) davranışları</h3>
+<p>Varsayılan <code>recovery_behaviors</code> listesi bu iki eklentiyi kullanır. Kendi listeni tanımlarsan farklı sırayla, farklı parametrelerle kullanabilirsin.</p>
+<h3>rotate_recovery</h3>
+<p>Robot takıldığında yerinde 360° dönerek costmap&#x27;i temizlemeye çalışan varsayılan toparlanma davranışı. Dönüş sırasında her açıda çarpışma denetimi yapılır; bir açıda takılırsa oraya kadar döner ve durur. İlk iki parametre davranışın kendi isim alanından (<code>~/&lt;davranış_adı&gt;/</code>, varsayılan listede <code>~/rotate_recovery/</code>) okunur. Diğer dördü ise, hangi yerel planlayıcıyı kullanırsan kullan, <strong><code>~/TrajectoryPlannerROS/</code></strong> isim alanından okunur: DWA ya da TEB kullanırken <code>DWAPlannerROS/max_vel_theta</code> vermek toparlanma dönüşünü sınırlamaz; ağır bir robotta bu değerleri <code>TrajectoryPlannerROS:</code> altında ayrıca yazmalısın.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="rotr-sim_granularity"><td><code>sim_granularity</code></td><td>double</td><td class="n"><code>0.017</code></td><td class="n">—</td><td>Dönüş sırasında çarpışma denetiminin açısal adım aralığı (rad).</td></tr>
+<tr id="rotr-frequency"><td><code>frequency</code></td><td>double</td><td class="n"><code>20</code></td><td class="n">—</td><td>Dönüş sırasında hız komutu üretme hızı (Hz).</td></tr>
+<tr id="rotr-TrajectoryPlannerROS/yaw_goal_tolerance"><td><code>TrajectoryPlannerROS/yaw_goal_tolerance</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Dönüşün &quot;tamamlandı&quot; sayılması için izin verilen açı hatası (rad).</td></tr>
+<tr id="rotr-TrajectoryPlannerROS/max_vel_theta"><td><code>TrajectoryPlannerROS/max_vel_theta</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">—</td><td>Toparlanma dönüşünün en yüksek açısal hızı (rad/s). Eski adı <code>max_rotational_vel</code> da kabul edilir.</td></tr>
+<tr id="rotr-TrajectoryPlannerROS/min_in_place_vel_theta"><td><code>TrajectoryPlannerROS/min_in_place_vel_theta</code></td><td>double</td><td class="n"><code>0.4</code></td><td class="n">—</td><td>Toparlanma dönüşünün en düşük açısal hızı (rad/s). Eski adı <code>min_in_place_rotational_vel</code> da kabul edilir.</td></tr>
+<tr id="rotr-TrajectoryPlannerROS/acc_lim_theta"><td><code>TrajectoryPlannerROS/acc_lim_theta</code></td><td>double</td><td class="n"><code>3.2</code></td><td class="n">—</td><td>Toparlanma dönüşünde açısal ivme sınırı (rad/s²); yavaşlamaya ne zaman başlanacağını belirler. Eski adı <code>acc_lim_th</code> da kabul edilir.</td></tr>
+</tbody></table></div>
+<h3>clear_costmap_recovery</h3>
+<p>Robottan uzaktaki costmap engellerini zorla temizleyen varsayılan toparlanma davranışı (&quot;hafif&quot; ve &quot;agresif&quot; sıfırlama bu davranışın iki farklı <code>reset_distance</code> ile örneğidir).</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="clrr-reset_distance"><td><code>reset_distance</code></td><td>double</td><td class="n"><code>3</code></td><td class="n">—</td><td>Robot merkezli, kenar uzunluğu bu değer (m) olan bir karenin dışındaki engeller temizlenir; yani robottan her eksende bu değerin yarısından uzak olanlar. <code>invert_area_to_clear: true</code> ise karenin içi temizlenir.</td></tr>
+<tr id="clrr-layer_names"><td><code>layer_names</code></td><td>list</td><td class="n"><code>&quot;[&quot;obstacles&quot;]&quot;</code></td><td class="n">—</td><td>Temizlenecek costmap katmanlarının adları. Katman adı (<code>plugins</code> listesindeki <code>name</code>) bu listedeki bir adla <strong>birebir</strong> aynı olmalıdır. Varsayılan <code>obstacles</code> olduğundan, engel katmanını <code>obstacle_layer</code> gibi başka bir adla tanımladıysan varsayılan toparlanma davranışları <strong>hiçbir şeyi temizlemez</strong>; bu durumda <code>conservative_reset/layer_names</code> ve <code>aggressive_reset/layer_names</code>&#x27;i kendi katman adınla ver.</td></tr>
+<tr id="clrr-force_updating"><td><code>force_updating</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise temizlemeden sonra costmap güncellemesi beklenmeden devam edilir.</td></tr>
+<tr id="clrr-affected_maps"><td><code>affected_maps</code></td><td>string</td><td class="n"><code>&quot;both&quot;</code></td><td class="n">—</td><td>Hangi costmap&#x27;in etkileneceği: <code>local</code>, <code>global</code> ya da <code>both</code>.</td></tr>
+<tr id="clrr-invert_area_to_clear"><td><code>invert_area_to_clear</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise belirtilen alanın *dışı* temizlenir, içi değil.</td></tr>
+</tbody></table></div>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="smach.html"><small>← Önceki</small>Durum makinesi (SMACH)</a><a class="next" href="ref-costmap.html"><small>Sonraki →</small>costmap_2d</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

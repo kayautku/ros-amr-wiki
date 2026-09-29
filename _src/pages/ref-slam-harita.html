@@ -1,0 +1,120 @@
+<section id="gmapping-ref">
+<h2>gmapping</h2>
+<p><code>slam_gmapping</code>, lazer taramalarından ve odometriden parçacık filtresiyle (Rao-Blackwellized) harita çıkaran SLAM node'udur. Kavramsal anlatım için <a href="harita-ve-navigasyon.html#slam">Harita ve SLAM</a> bölümüne bak; burada <strong>37 parametrenin tamamı</strong> var.</p>
+<div class="call"><b>Bu sayfadaki değerler nereden geliyor?</b>
+<p>ROS paketi <code>ros-perception/slam_gmapping</code>'in kurulu <code>1.4.2</code> sürümünün kaynak kodundan (<code>gmapping/src/slam_gmapping.cpp</code>). Bu paketin dynamic_reconfigure tanımı yoktur; tüm parametreler yalnızca başlangıçta, <code>rosparam</code> ya da launch'tan okunur.</p></div>
+<h4>Abone olunan / yayınlanan topic'ler</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Yön</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>scan</code></td><td>abone</td><td><code>sensor_msgs/LaserScan</code></td></tr>
+<tr><td><code>tf</code></td><td>abone + yayın</td><td><code>tf2_msgs/TFMessage</code> (`map→odom`)</td></tr>
+<tr><td><code>map</code></td><td>yayın</td><td><code>nav_msgs/OccupancyGrid</code></td></tr>
+<tr><td><code>map_metadata</code></td><td>yayın</td><td><code>nav_msgs/MapMetaData</code></td></tr>
+<tr><td><code>~entropy</code></td><td>yayın</td><td><code>std_msgs/Float64</code> — parçacık dağılımının belirsizliği; ani yükseliş genelde kötü bir eşleşmeye işaret eder</td></tr>
+</tbody></table></div>
+<h4>Sunulan servisler</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>dynamic_map</code></td><td><code>nav_msgs/GetMap</code> — o anki haritayı döndürür</td></tr>
+</tbody></table></div>
+
+<h3>Çerçeveler ve zaman</h3>
+<p></p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="gm-base_frame"><td><code>base_frame</code></td><td>string</td><td class="n"><code>&quot;base_link&quot;</code></td><td class="n">—</td><td>Robot gövdesinin çerçeve adı.</td></tr>
+<tr id="gm-map_frame"><td><code>map_frame</code></td><td>string</td><td class="n"><code>&quot;map&quot;</code></td><td class="n">—</td><td>Üretilecek haritanın çerçeve adı.</td></tr>
+<tr id="gm-odom_frame"><td><code>odom_frame</code></td><td>string</td><td class="n"><code>&quot;odom&quot;</code></td><td class="n">—</td><td>Odometri çerçevesinin adı.</td></tr>
+<tr id="gm-transform_publish_period"><td><code>transform_publish_period</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">—</td><td><code>map→odom</code> dönüşümünün yayınlanma periyodu (sn); 0 yayınlamaz.</td></tr>
+<tr id="gm-tf_delay"><td><code>tf_delay</code></td><td>double</td><td class="n"><code>transform_publish_period ile aynı</code></td><td class="n">—</td><td>Yayınlanan dönüşümün ne kadar ileri damgalanacağı (sn); genelde <code>transform_publish_period</code> ile aynı tutulur.</td></tr>
+<tr id="gm-throttle_scans"><td><code>throttle_scans</code></td><td>int</td><td class="n"><code>1</code></td><td class="n">—</td><td>Kaç taramada birinin işleneceği; 1 = her tarama.</td></tr>
+</tbody></table></div>
+<h3>Harita boyutu ve güncelleme</h3>
+<p>gmapping, haritayı önceden ayrılmış sabit boyutlu bir ızgarada tutar. Küçük bir alan için varsayılan (200×200 m) gereğinden büyük ve yavaştır; <code>xmin…ymax</code> ile daralt.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="gm-xmin"><td><code>xmin</code></td><td>double</td><td class="n"><code>-100</code></td><td class="n">—</td><td>Harita sınırı, x ekseni alt uç (m).</td></tr>
+<tr id="gm-ymin"><td><code>ymin</code></td><td>double</td><td class="n"><code>-100</code></td><td class="n">—</td><td>Harita sınırı, y ekseni alt uç (m).</td></tr>
+<tr id="gm-xmax"><td><code>xmax</code></td><td>double</td><td class="n"><code>100</code></td><td class="n">—</td><td>Harita sınırı, x ekseni üst uç (m).</td></tr>
+<tr id="gm-ymax"><td><code>ymax</code></td><td>double</td><td class="n"><code>100</code></td><td class="n">—</td><td>Harita sınırı, y ekseni üst uç (m).</td></tr>
+<tr id="gm-delta"><td><code>delta</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">—</td><td>Harita çözünürlüğü (m/hücre).</td></tr>
+<tr id="gm-map_update_interval"><td><code>map_update_interval</code></td><td>double</td><td class="n"><code>5</code></td><td class="n">—</td><td>Haritanın yeniden hesaplanma periyodu (sn); küçültmek daha güncel ama daha ağır bir harita verir.</td></tr>
+<tr id="gm-occ_thresh"><td><code>occ_thresh</code></td><td>double</td><td class="n"><code>0.25</code></td><td class="n">—</td><td>Bir hücrenin &quot;dolu&quot; (engel) sayılması için gereken doluluk oranı eşiği.</td></tr>
+</tbody></table></div>
+<h3>Ne zaman güncellensin</h3>
+<p>Robot bu kadar hareket etmeden yeni bir tarama işlenmez; gereksiz işlem yükünü azaltır.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="gm-linearUpdate"><td><code>linearUpdate</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">—</td><td>Bir güncelleme için robotun kat etmesi gereken en az mesafe (m).</td></tr>
+<tr id="gm-angularUpdate"><td><code>angularUpdate</code></td><td>double</td><td class="n"><code>0.5</code></td><td class="n">—</td><td>Bir güncelleme için robotun dönmesi gereken en az açı (rad).</td></tr>
+<tr id="gm-temporalUpdate"><td><code>temporalUpdate</code></td><td>double</td><td class="n"><code>-1</code></td><td class="n">—</td><td>Konum değişmese bile bu süre (sn) geçince yine de güncelle; negatifse kapalı.</td></tr>
+<tr id="gm-resampleThreshold"><td><code>resampleThreshold</code></td><td>double</td><td class="n"><code>0.5</code></td><td class="n">—</td><td>Parçacık filtresinin yeniden örnekleneceği etkin örnek büyüklüğü eşiği.</td></tr>
+<tr id="gm-particles"><td><code>particles</code></td><td>int</td><td class="n"><code>30</code></td><td class="n">—</td><td>Parçacık filtresindeki parçacık sayısı. Büyütmek daha güvenilir ama daha yavaş.</td></tr>
+</tbody></table></div>
+<h3>Lazer menzili</h3>
+<p></p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="gm-maxUrange"><td><code>maxUrange</code></td><td>double</td><td class="n"><code>maxRange (ilk taramada belirlenir)</code></td><td class="n">—</td><td>Haritalamada kullanılacak en büyük &quot;kullanılabilir&quot; menzil (m); verilmezse <code>maxRange</code> ile aynı olur.</td></tr>
+<tr id="gm-maxRange"><td><code>maxRange</code></td><td>double</td><td class="n"><code>taramanın range_max − 0,01 (ilk taramada belirlenir)</code></td><td class="n">—</td><td>Lazerin geçerli sayılacak en büyük menzili (m); verilmezse taramanın kendi <code>range_max − 0,01</code> değeri kullanılır.</td></tr>
+<tr id="gm-minimumScore"><td><code>minimumScore</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>Bir taramanın haritayla eşleşmesi için gereken en düşük puan; 0 bu denetimi etkisiz kılar. Simetrik/az özellikli ortamlarda ani sıçramaları önlemek için artırılabilir.</td></tr>
+</tbody></table></div>
+<h3>Tarama eşleme (scan matching)</h3>
+<p>gmapping, her taramayı önce ham odometri etrafında küçük bir pencerede arayarak haritayla en iyi eşleşen konumu bulur (scan matching); bu parametreler o aramayı ayarlar.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="gm-sigma"><td><code>sigma</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">—</td><td>Bir ölçümün &quot;isabetli&quot; sayılması için haritadaki en yakın engelden izin verilen sapma (m).</td></tr>
+<tr id="gm-kernelSize"><td><code>kernelSize</code></td><td>int</td><td class="n"><code>1</code></td><td class="n">—</td><td>Eşleşen nokta arama penceresinin hücre cinsinden yarıçapı.</td></tr>
+<tr id="gm-lstep"><td><code>lstep</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">—</td><td>Öteleme yönünde arama adımı (m).</td></tr>
+<tr id="gm-astep"><td><code>astep</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">—</td><td>Dönüş yönünde arama adımı (rad).</td></tr>
+<tr id="gm-iterations"><td><code>iterations</code></td><td>int</td><td class="n"><code>5</code></td><td class="n">—</td><td>Tarama eşleme aramasının yineleme sayısı.</td></tr>
+<tr id="gm-lsigma"><td><code>lsigma</code></td><td>double</td><td class="n"><code>0.075</code></td><td class="n">—</td><td>Puanlama sırasında (olabilirlik hesabında) kullanılan uyum standart sapması (m).</td></tr>
+<tr id="gm-ogain"><td><code>ogain</code></td><td>double</td><td class="n"><code>3</code></td><td class="n">—</td><td>Yeniden örneklemede kullanılan ağırlıkların olabilirliğe göre &quot;keskinliği&quot;; büyütmek en iyi eşleşmenin ağırlığını artırır.</td></tr>
+<tr id="gm-lskip"><td><code>lskip</code></td><td>int</td><td class="n"><code>0</code></td><td class="n">—</td><td>Tarama eşlemede her ışından kaçının atlanacağı; 0 = hiçbiri atlanmaz (tüm ışınlar kullanılır).</td></tr>
+</tbody></table></div>
+<h3>Hareket modeli gürültüsü</h3>
+<p>Tekerlek odometrisinin öteleme/dönüş hareketlerinden kaynaklanan gürültü tahminleri (AMCL&#x27;deki <code>odom_alphaN</code>&#x27;e benzer amaç).</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="gm-srr"><td><code>srr</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Öteleme hareketinden kaynaklanan öteleme gürültüsü.</td></tr>
+<tr id="gm-srt"><td><code>srt</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">—</td><td>Öteleme hareketinden kaynaklanan dönüş gürültüsü.</td></tr>
+<tr id="gm-str"><td><code>str</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Dönüş hareketinden kaynaklanan öteleme gürültüsü.</td></tr>
+<tr id="gm-stt"><td><code>stt</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">—</td><td>Dönüş hareketinden kaynaklanan dönüş gürültüsü.</td></tr>
+<tr id="gm-llsamplerange"><td><code>llsamplerange</code></td><td>double</td><td class="n"><code>0.01</code></td><td class="n">—</td><td>Konum (doğrusal) örnekleme aralığı; olabilirlik hesabı için kullanılır.</td></tr>
+<tr id="gm-llsamplestep"><td><code>llsamplestep</code></td><td>double</td><td class="n"><code>0.01</code></td><td class="n">—</td><td>Konum (doğrusal) örnekleme adımı.</td></tr>
+<tr id="gm-lasamplerange"><td><code>lasamplerange</code></td><td>double</td><td class="n"><code>0.005</code></td><td class="n">—</td><td>Açı örnekleme aralığı.</td></tr>
+<tr id="gm-lasamplestep"><td><code>lasamplestep</code></td><td>double</td><td class="n"><code>0.005</code></td><td class="n">—</td><td>Açı örnekleme adımı.</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="map-server-ref">
+<h2>map_server</h2>
+<p><code>map_server</code>, kayıtlı bir haritayı <code>nav_msgs/OccupancyGrid</code> olarak servis eden node ve haritayı diskten okuyup yazan iki komut satırı aracı (<code>map_server</code>, <code>map_saver</code>) sağlar. Kavramsal anlatım için <a href="harita-ve-navigasyon.html#slam">Harita ve SLAM</a> bölümüne bak.</p>
+<div class="call"><b>Bu sayfadaki değerler nereden geliyor?</b>
+<p>ROS Noetic'in <code>map_server</code> kaynak kodundan (<code>ros-planning/navigation</code>, bu makinede kurulu olan <code>1.17.3</code> sürümünün etiketi: <code>src/main.cpp</code>, <code>src/image_loader.cpp</code>).</p></div>
+<h4>Komut satırı kullanımı</h4>
+<pre><code>rosrun map_server map_server harita.yaml
+rosrun map_server map_saver -f harita          # → harita.pgm + harita.yaml yazar</code></pre>
+<h4>Yayınlanan topic'ler ve servisler</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>map</code></td><td>yayın, <code>nav_msgs/OccupancyGrid</code> (kalıcı/latched)</td></tr>
+<tr><td><code>map_metadata</code></td><td>yayın, <code>nav_msgs/MapMetaData</code> (kalıcı/latched)</td></tr>
+<tr><td><code>static_map</code></td><td>servis, <code>nav_msgs/GetMap</code></td></tr>
+</tbody></table></div>
+
+<h3>map_server node parametresi</h3>
+<p></p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="ms-frame_id"><td><code>frame_id</code></td><td>string</td><td class="n"><code>&quot;map&quot;</code></td><td class="n">—</td><td>Yayınlanan <code>nav_msgs/OccupancyGrid</code> mesajının çerçeve adı.</td></tr>
+</tbody></table></div>
+<h3>Harita YAML dosyası: eşik alanları</h3>
+<p>Bunlar node parametresi değil, <code>map_saver</code>&#x27;ın yazdığı ya da <code>map_server</code>&#x27;a verilen <code>.yaml</code> dosyasının alanlarıdır. YAML ile yüklenen haritada bu üç alan zorunludur (eksikse harita yüklenmez). Varsayılan sütunundaki değerler, YAML&#x27;sız eski kullanımda (<code>map_server resim.pgm &lt;çözünürlük&gt;</code>) bu adlarla <code>~param</code> olarak okunan varsayılanlardır; <code>map_saver</code> da dosyaya aynı değerleri yazar.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="ms-negate"><td><code>negate</code></td><td>int</td><td class="n"><code>0</code></td><td class="n">—</td><td>1 ise beyaz/siyah = engel/boş anlamı ters çevrilir (kodun kendi tanımı: <code>p = x/255</code> olur; normalde <code>p = (255−x)/255</code>).</td></tr>
+<tr id="ms-occupied_thresh"><td><code>occupied_thresh</code></td><td>double</td><td class="n"><code>0.65</code></td><td class="n">—</td><td>Doluluk oranı (<code>p</code>) bunu aşan piksel &quot;dolu&quot; (100) sayılır.</td></tr>
+<tr id="ms-free_thresh"><td><code>free_thresh</code></td><td>double</td><td class="n"><code>0.196</code></td><td class="n">—</td><td>Doluluk oranı (<code>p</code>) bunun altında kalan piksel &quot;boş&quot; (0) sayılır. İkisi arasındakiler varsayılan <code>trinary</code> modunda −1 (bilinmiyor), <code>scale</code> modunda orantılı bir ara değer alır.</td></tr>
+</tbody></table></div>
+
+<h3>Harita YAML dosyası: diğer alanlar</h3>
+<div class="tw ptab"><table><thead><tr><th>Alan</th><th>Tür</th><th>Zorunlu mu?</th><th>Açıklama</th></tr></thead><tbody>
+<tr><td><code>image</code></td><td>string</td><td>evet</td><td>Resim dosyasının yolu; mutlak ya da YAML dosyasının klasörüne göre göreli.</td></tr>
+<tr><td><code>resolution</code></td><td>double</td><td>evet</td><td>Bir pikselin kenar uzunluğu (m).</td></tr>
+<tr><td><code>origin</code></td><td>[x, y, yaw]</td><td>evet</td><td>Resmin sol-alt pikselinin <code>map</code> çerçevesindeki konumu ve yönü (m, m, rad). Birçok araç yaw'ı yok sayar.</td></tr>
+<tr><td><code>mode</code></td><td>string</td><td>hayır (varsayılan <code>trinary</code>)</td><td><code>trinary</code>: hücreler yalnızca 0, 100 ya da −1 olur. <code>scale</code>: eşikler arası orantılı değer alır; resmin alfa kanalı varsa saydam pikseller −1 olur. <code>raw</code>: piksel değeri hücre değeri olarak doğrudan kullanılır.</td></tr>
+</tbody></table></div>
+
+<h4>Piksel değerinin hücre değerine çevrilmesi</h4>
+<p>Her piksel değeri <code>x</code> (0–255), önce <code>p</code>'ye çevrilir: <code>negate: 0</code> iken <code>p = (255 − x) / 255</code> (yani koyu piksel = yüksek doluluk); <code>negate: 1</code> iken <code>p = x / 255</code> (tersi). Sonra <code>p &gt; occupied_thresh</code> ise hücre <strong>100</strong> (dolu), <code>p &lt; free_thresh</code> ise <strong>0</strong> (boş) olur. Arada kalan pikseller <code>trinary</code> modunda <strong>−1</strong> (bilinmiyor), <code>scale</code> modunda <code>99 × (p − free_thresh) / (occupied_thresh − free_thresh)</code> ile orantılı bir ara değer alır. <code>raw</code> modunda bu hesap yapılmaz.</p>
+</section>

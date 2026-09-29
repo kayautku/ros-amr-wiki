@@ -1,0 +1,1032 @@
+{
+ "dwa": [
+  {
+   "group": "",
+   "name": "max_vel_trans",
+   "type": "double",
+   "default": 0.55,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The absolute value of the maximum translational velocity for the robot in m/s"
+  },
+  {
+   "group": "",
+   "name": "min_vel_trans",
+   "type": "double",
+   "default": 0.1,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The absolute value of the minimum translational velocity for the robot in m/s"
+  },
+  {
+   "group": "",
+   "name": "max_vel_x",
+   "type": "double",
+   "default": 0.55,
+   "min": -Infinity,
+   "max": Infinity,
+   "desc": "The maximum x velocity for the robot in m/s"
+  },
+  {
+   "group": "",
+   "name": "min_vel_x",
+   "type": "double",
+   "default": 0.0,
+   "min": -Infinity,
+   "max": Infinity,
+   "desc": "The minimum x velocity for the robot in m/s"
+  },
+  {
+   "group": "",
+   "name": "max_vel_y",
+   "type": "double",
+   "default": 0.1,
+   "min": -Infinity,
+   "max": Infinity,
+   "desc": "The maximum y velocity for the robot in m/s"
+  },
+  {
+   "group": "",
+   "name": "min_vel_y",
+   "type": "double",
+   "default": -0.1,
+   "min": -Infinity,
+   "max": Infinity,
+   "desc": "The minimum y velocity for the robot in m/s"
+  },
+  {
+   "group": "",
+   "name": "max_vel_theta",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The absolute value of the maximum rotational velocity for the robot in rad/s"
+  },
+  {
+   "group": "",
+   "name": "min_vel_theta",
+   "type": "double",
+   "default": 0.4,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The absolute value of the minimum rotational velocity for the robot in rad/s"
+  },
+  {
+   "group": "",
+   "name": "acc_lim_x",
+   "type": "double",
+   "default": 2.5,
+   "min": 0.0,
+   "max": 20.0,
+   "desc": "The acceleration limit of the robot in the x direction"
+  },
+  {
+   "group": "",
+   "name": "acc_lim_y",
+   "type": "double",
+   "default": 2.5,
+   "min": 0.0,
+   "max": 20.0,
+   "desc": "The acceleration limit of the robot in the y direction"
+  },
+  {
+   "group": "",
+   "name": "acc_lim_theta",
+   "type": "double",
+   "default": 3.2,
+   "min": 0.0,
+   "max": 20.0,
+   "desc": "The acceleration limit of the robot in the theta direction"
+  },
+  {
+   "group": "",
+   "name": "acc_lim_trans",
+   "type": "double",
+   "default": 0.1,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The absolute value of the maximum translational acceleration for the robot in m/s^2"
+  },
+  {
+   "group": "",
+   "name": "prune_plan",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "Start following closest point of global plan, not first point (if different)."
+  },
+  {
+   "group": "",
+   "name": "xy_goal_tolerance",
+   "type": "double",
+   "default": 0.1,
+   "min": -Infinity,
+   "max": Infinity,
+   "desc": "Within what maximum distance we consider the robot to be in goal"
+  },
+  {
+   "group": "",
+   "name": "yaw_goal_tolerance",
+   "type": "double",
+   "default": 0.1,
+   "min": -Infinity,
+   "max": Infinity,
+   "desc": "Within what maximum angle difference we consider the robot to face goal direction"
+  },
+  {
+   "group": "",
+   "name": "trans_stopped_vel",
+   "type": "double",
+   "default": 0.1,
+   "min": -Infinity,
+   "max": Infinity,
+   "desc": "Below what maximum velocity we consider the robot to be stopped in translation"
+  },
+  {
+   "group": "",
+   "name": "theta_stopped_vel",
+   "type": "double",
+   "default": 0.1,
+   "min": -Infinity,
+   "max": Infinity,
+   "desc": "Below what maximum rotation velocity we consider the robot to be stopped in rotation"
+  },
+  {
+   "group": "",
+   "name": "sim_time",
+   "type": "double",
+   "default": 1.7,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The amount of time to roll trajectories out for in seconds"
+  },
+  {
+   "group": "",
+   "name": "sim_granularity",
+   "type": "double",
+   "default": 0.025,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The granularity with which to check for collisions along each trajectory in meters"
+  },
+  {
+   "group": "",
+   "name": "angular_sim_granularity",
+   "type": "double",
+   "default": 0.1,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The granularity with which to check for collisions for rotations in radians"
+  },
+  {
+   "group": "",
+   "name": "path_distance_bias",
+   "type": "double",
+   "default": 0.6,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The weight for the path distance part of the cost function"
+  },
+  {
+   "group": "",
+   "name": "goal_distance_bias",
+   "type": "double",
+   "default": 0.8,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The weight for the goal distance part of the cost function"
+  },
+  {
+   "group": "",
+   "name": "occdist_scale",
+   "type": "double",
+   "default": 0.01,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The weight for the obstacle distance part of the cost function"
+  },
+  {
+   "group": "",
+   "name": "twirling_scale",
+   "type": "double",
+   "default": 0.0,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The weight for penalizing any changes in robot heading"
+  },
+  {
+   "group": "",
+   "name": "stop_time_buffer",
+   "type": "double",
+   "default": 0.2,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The amount of time that the robot must stop before a collision in order for a trajectory to be considered valid in seconds"
+  },
+  {
+   "group": "",
+   "name": "oscillation_reset_dist",
+   "type": "double",
+   "default": 0.05,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The distance the robot must travel before oscillation flags are reset, in meters"
+  },
+  {
+   "group": "",
+   "name": "oscillation_reset_angle",
+   "type": "double",
+   "default": 0.2,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The angle the robot must turn before oscillation flags are reset, in radians"
+  },
+  {
+   "group": "",
+   "name": "forward_point_distance",
+   "type": "double",
+   "default": 0.325,
+   "min": -Infinity,
+   "max": Infinity,
+   "desc": "The distance from the center point of the robot to place an additional scoring point, in meters"
+  },
+  {
+   "group": "",
+   "name": "scaling_speed",
+   "type": "double",
+   "default": 0.25,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The absolute value of the velocity at which to start scaling the robot's footprint, in m/s"
+  },
+  {
+   "group": "",
+   "name": "max_scaling_factor",
+   "type": "double",
+   "default": 0.2,
+   "min": 0.0,
+   "max": Infinity,
+   "desc": "The maximum factor to scale the robot's footprint by"
+  },
+  {
+   "group": "",
+   "name": "vx_samples",
+   "type": "int",
+   "default": 3,
+   "min": 1,
+   "max": 2147483647,
+   "desc": "The number of samples to use when exploring the x velocity space"
+  },
+  {
+   "group": "",
+   "name": "vy_samples",
+   "type": "int",
+   "default": 10,
+   "min": 1,
+   "max": 2147483647,
+   "desc": "The number of samples to use when exploring the y velocity space"
+  },
+  {
+   "group": "",
+   "name": "vth_samples",
+   "type": "int",
+   "default": 20,
+   "min": 1,
+   "max": 2147483647,
+   "desc": "The number of samples to use when exploring the theta velocity space"
+  },
+  {
+   "group": "",
+   "name": "use_dwa",
+   "type": "bool",
+   "default": true,
+   "min": false,
+   "max": true,
+   "desc": "Use dynamic window approach to constrain sampling velocities to small window."
+  },
+  {
+   "group": "",
+   "name": "restore_defaults",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "Restore to the original configuration."
+  }
+ ],
+ "teb": [
+  {
+   "group": "Trajectory",
+   "name": "teb_autosize",
+   "type": "bool",
+   "default": true,
+   "min": false,
+   "max": true,
+   "desc": "Enable the automatic resizing of the trajectory during optimization (based on the temporal resolution of the trajectory, recommended)"
+  },
+  {
+   "group": "Trajectory",
+   "name": "dt_ref",
+   "type": "double",
+   "default": 0.3,
+   "min": 0.01,
+   "max": 1.0,
+   "desc": "Temporal resolution of the planned trajectory (usually it is set to the magnitude of the 1/control_rate)"
+  },
+  {
+   "group": "Trajectory",
+   "name": "dt_hysteresis",
+   "type": "double",
+   "default": 0.1,
+   "min": 0.002,
+   "max": 0.5,
+   "desc": "Hysteresis that is utilized for automatic resizing depending on the current temporal resolution (dt): usually 10% of dt_ref"
+  },
+  {
+   "group": "Trajectory",
+   "name": "global_plan_overwrite_orientation",
+   "type": "bool",
+   "default": true,
+   "min": false,
+   "max": true,
+   "desc": "Some global planners are not considering the orientation at local subgoals between start and global goal, therefore determine it automatically"
+  },
+  {
+   "group": "Trajectory",
+   "name": "allow_init_with_backwards_motion",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "If true, the underlying trajectories might be initialized with backwards motions in case the goal is behind the start within the local costmap (this is only recommended if the robot is equipped with rear sensors)"
+  },
+  {
+   "group": "Trajectory",
+   "name": "max_global_plan_lookahead_dist",
+   "type": "double",
+   "default": 3.0,
+   "min": 0.0,
+   "max": 50.0,
+   "desc": "Specify maximum length (cumulative Euclidean distances) of the subset of the global plan taken into account for optimization [if 0 or negative: disabled; the length is also bounded by the local costmap size]"
+  },
+  {
+   "group": "Trajectory",
+   "name": "force_reinit_new_goal_dist",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 10.0,
+   "desc": "Force the planner to reinitialize the trajectory if a previous goal is updated with a seperation of more than the specified value in meters (skip hot-starting)"
+  },
+  {
+   "group": "Trajectory",
+   "name": "force_reinit_new_goal_angular",
+   "type": "double",
+   "default": 0.78,
+   "min": 0.0,
+   "max": 4.0,
+   "desc": "Force the planner to reinitialize the trajectory if a previous goal is updated with a rotational difference of more than the specified value in radians (skip hot-starting)"
+  },
+  {
+   "group": "Trajectory",
+   "name": "feasibility_check_no_poses",
+   "type": "int",
+   "default": 5,
+   "min": 0,
+   "max": 50,
+   "desc": "Specify up to which pose on the predicted plan the feasibility should be checked each sampling interval"
+  },
+  {
+   "group": "Trajectory",
+   "name": "exact_arc_length",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "If true, the planner uses the exact arc length in velocity, acceleration and turning rate computations [-> increased cpu time], otherwise the euclidean approximation is used."
+  },
+  {
+   "group": "Trajectory",
+   "name": "publish_feedback",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "Publish planner feedback containing the full trajectory and a list of active obstacles (should be enabled only for evaluation or debugging purposes)"
+  },
+  {
+   "group": "Trajectory",
+   "name": "visualize_with_time_as_z_axis_scale",
+   "type": "double",
+   "default": 0.0,
+   "min": 0.0,
+   "max": 1.0,
+   "desc": "If this value is bigger than 0, the trajectory and obstacles are visualized in 3d using the time as the z-axis scaled by this value. Most useful for dynamic obstacles."
+  },
+  {
+   "group": "ViaPoints",
+   "name": "global_plan_viapoint_sep",
+   "type": "double",
+   "default": -0.1,
+   "min": -0.1,
+   "max": 5.0,
+   "desc": "Min. separation between each two consecutive via-points extracted from the global plan [if negative: disabled]"
+  },
+  {
+   "group": "ViaPoints",
+   "name": "via_points_ordered",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "If true, the planner adheres to the order of via-points in the storage container"
+  },
+  {
+   "group": "Robot",
+   "name": "max_vel_x",
+   "type": "double",
+   "default": 0.4,
+   "min": 0.01,
+   "max": 100.0,
+   "desc": "Maximum translational velocity of the robot"
+  },
+  {
+   "group": "Robot",
+   "name": "max_vel_x_backwards",
+   "type": "double",
+   "default": 0.2,
+   "min": 0.01,
+   "max": 100.0,
+   "desc": "Maximum translational velocity of the robot for driving backwards"
+  },
+  {
+   "group": "Robot",
+   "name": "max_vel_theta",
+   "type": "double",
+   "default": 0.3,
+   "min": 0.01,
+   "max": 100.0,
+   "desc": "Maximum angular velocity of the robot"
+  },
+  {
+   "group": "Robot",
+   "name": "acc_lim_x",
+   "type": "double",
+   "default": 0.5,
+   "min": 0.01,
+   "max": 100.0,
+   "desc": "Maximum translational acceleration of the robot"
+  },
+  {
+   "group": "Robot",
+   "name": "acc_lim_theta",
+   "type": "double",
+   "default": 0.5,
+   "min": 0.01,
+   "max": 100.0,
+   "desc": "Maximum angular acceleration of the robot"
+  },
+  {
+   "group": "Robot",
+   "name": "is_footprint_dynamic",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "If true, updated the footprint before checking trajectory feasibility"
+  },
+  {
+   "group": "GoalTolerance",
+   "name": "xy_goal_tolerance",
+   "type": "double",
+   "default": 0.2,
+   "min": 0.001,
+   "max": 10.0,
+   "desc": "Allowed final euclidean distance to the goal position"
+  },
+  {
+   "group": "GoalTolerance",
+   "name": "yaw_goal_tolerance",
+   "type": "double",
+   "default": 0.1,
+   "min": 0.001,
+   "max": 3.2,
+   "desc": "Allowed final orientation error to the goal orientation"
+  },
+  {
+   "group": "GoalTolerance",
+   "name": "free_goal_vel",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "Allow the robot's velocity to be nonzero for planning purposes (the robot can arrive at the goal with max speed)"
+  },
+  {
+   "group": "Obstacles",
+   "name": "min_obstacle_dist",
+   "type": "double",
+   "default": 0.5,
+   "min": 0.0,
+   "max": 10.0,
+   "desc": "Minimum desired separation from obstacles"
+  },
+  {
+   "group": "Obstacles",
+   "name": "inflation_dist",
+   "type": "double",
+   "default": 0.6,
+   "min": 0.0,
+   "max": 15.0,
+   "desc": "Buffer zone around obstacles with non-zero penalty costs (should be larger than min_obstacle_dist in order to take effect)"
+  },
+  {
+   "group": "Obstacles",
+   "name": "dynamic_obstacle_inflation_dist",
+   "type": "double",
+   "default": 0.6,
+   "min": 0.0,
+   "max": 15.0,
+   "desc": "Buffer zone around predicted locations of dynamic obstacles with non-zero penalty costs (should be larger than min_obstacle_dist in order to take effect)"
+  },
+  {
+   "group": "Obstacles",
+   "name": "include_dynamic_obstacles",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "Specify whether the movement of dynamic obstacles should be predicted by a constant velocity model (this also changes the homotopy class search). If false, all obstacles are considered to be static."
+  },
+  {
+   "group": "Obstacles",
+   "name": "include_costmap_obstacles",
+   "type": "bool",
+   "default": true,
+   "min": false,
+   "max": true,
+   "desc": "Specify whether the obstacles in the costmap should be taken into account directly (this is necessary if no seperate clustering and detection is implemented)"
+  },
+  {
+   "group": "Obstacles",
+   "name": "legacy_obstacle_association",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "If true, the old association strategy is used (for each obstacle, find the nearest TEB pose), otherwise the new one (for each teb pose, find only 'relevant' obstacles)."
+  },
+  {
+   "group": "Obstacles",
+   "name": "obstacle_association_force_inclusion_factor",
+   "type": "double",
+   "default": 1.5,
+   "min": 0.0,
+   "max": 100.0,
+   "desc": "The non-legacy obstacle association technique tries to connect only relevant obstacles with the discretized trajectory during optimization, all obstacles within a specifed distance are forced to be included (as a multiple of min_obstacle_dist), e.g. choose 2.0 in order to consider obstacles within a radius of 2.0*min_obstacle_dist."
+  },
+  {
+   "group": "Obstacles",
+   "name": "obstacle_association_cutoff_factor",
+   "type": "double",
+   "default": 5.0,
+   "min": 1.0,
+   "max": 100.0,
+   "desc": "See obstacle_association_force_inclusion_factor, but beyond a multiple of [value]*min_obstacle_dist all obstacles are ignored during optimization. obstacle_association_force_inclusion_factor is processed first."
+  },
+  {
+   "group": "Obstacles",
+   "name": "costmap_obstacles_behind_robot_dist",
+   "type": "double",
+   "default": 1.5,
+   "min": 0.0,
+   "max": 20.0,
+   "desc": "Limit the occupied local costmap obstacles taken into account for planning behind the robot (specify distance in meters)"
+  },
+  {
+   "group": "Obstacles",
+   "name": "obstacle_poses_affected",
+   "type": "int",
+   "default": 30,
+   "min": 0,
+   "max": 200,
+   "desc": "The obstacle position is attached to the closest pose on the trajectory to reduce computational effort, but take a number of neighbors into account as well"
+  },
+  {
+   "group": "Optimization",
+   "name": "no_inner_iterations",
+   "type": "int",
+   "default": 5,
+   "min": 1,
+   "max": 100,
+   "desc": "Number of solver iterations called in each outerloop iteration"
+  },
+  {
+   "group": "Optimization",
+   "name": "no_outer_iterations",
+   "type": "int",
+   "default": 4,
+   "min": 1,
+   "max": 100,
+   "desc": "Each outerloop iteration automatically resizes the trajectory and invokes the internal optimizer with no_inner_iterations"
+  },
+  {
+   "group": "Optimization",
+   "name": "optimization_activate",
+   "type": "bool",
+   "default": true,
+   "min": false,
+   "max": true,
+   "desc": "Activate the optimization"
+  },
+  {
+   "group": "Optimization",
+   "name": "optimization_verbose",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "Print verbose information"
+  },
+  {
+   "group": "Optimization",
+   "name": "penalty_epsilon",
+   "type": "double",
+   "default": 0.05,
+   "min": 0.0,
+   "max": 1.0,
+   "desc": "Add a small safty margin to penalty functions for hard-constraint approximations"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_max_vel_x",
+   "type": "double",
+   "default": 2.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for satisfying the maximum allowed translational velocity"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_max_vel_y",
+   "type": "double",
+   "default": 2.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for satisfying the maximum allowed strafing velocity (in use only for holonomic robots)"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_max_vel_theta",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for satisfying the maximum allowed angular velocity"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_acc_lim_x",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for satisfying the maximum allowed translational acceleration"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_acc_lim_y",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for satisfying the maximum allowed strafing acceleration (in use only for holonomic robots)"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_acc_lim_theta",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for satisfying the maximum allowed angular acceleration"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_kinematics_nh",
+   "type": "double",
+   "default": 1000.0,
+   "min": 0.0,
+   "max": 10000.0,
+   "desc": "Optimization weight for satisfying the non-holonomic kinematics"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_kinematics_forward_drive",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for forcing the robot to choose only forward directions (positive transl. velocities, only diffdrive robot)"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_kinematics_turning_radius",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for enforcing a minimum turning radius (carlike robots)"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_optimaltime",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for contracting the trajectory w.r.t. transition time"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_shortest_path",
+   "type": "double",
+   "default": 0.0,
+   "min": 0.0,
+   "max": 100.0,
+   "desc": "Optimization weight for contracting the trajectory w.r.t. path length"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_obstacle",
+   "type": "double",
+   "default": 50.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for satisfying a minimum seperation from obstacles"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_inflation",
+   "type": "double",
+   "default": 0.1,
+   "min": 0.0,
+   "max": 10.0,
+   "desc": "Optimization weight for the inflation penalty (should be small)"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_dynamic_obstacle",
+   "type": "double",
+   "default": 50.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for satisfying a minimum seperation from dynamic obstacles"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_dynamic_obstacle_inflation",
+   "type": "double",
+   "default": 0.1,
+   "min": 0.0,
+   "max": 10.0,
+   "desc": "Optimization weight for the inflation penalty of dynamic obstacles (should be small)"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_viapoint",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Optimization weight for minimizing the distance to via-points"
+  },
+  {
+   "group": "Optimization",
+   "name": "weight_adapt_factor",
+   "type": "double",
+   "default": 2.0,
+   "min": 1.0,
+   "max": 100.0,
+   "desc": "Some special weights (currently 'weight_obstacle') are repeatedly scaled by this factor in each outer TEB iteration (weight_new: weight_old * factor); Increasing weights iteratively instead of setting a huge value a-priori leads to better numerical conditions of the underlying optimization problem."
+  },
+  {
+   "group": "Optimization",
+   "name": "obstacle_cost_exponent",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.01,
+   "max": 100.0,
+   "desc": "Exponent for nonlinear obstacle cost (cost = linear_cost * obstacle_cost_exponent). Set to 1 to disable nonlinear cost (default)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "enable_multithreading",
+   "type": "bool",
+   "default": true,
+   "min": false,
+   "max": true,
+   "desc": "Activate multiple threading for planning multiple trajectories in parallel"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "max_number_classes",
+   "type": "int",
+   "default": 5,
+   "min": 1,
+   "max": 100,
+   "desc": "Specify the maximum number of allowed alternative homotopy classes (limits computational effort)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "selection_cost_hysteresis",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 2.0,
+   "desc": "Specify how much trajectory cost must a new candidate have w.r.t. a previously selected trajectory in order to be selected (selection if new_cost < old_cost*factor)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "selection_prefer_initial_plan",
+   "type": "double",
+   "default": 0.95,
+   "min": 0.0,
+   "max": 1.0,
+   "desc": "Specify a cost reduction in the interval (0,1) for the trajectory in the equivalence class of the initial plan.)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "selection_obst_cost_scale",
+   "type": "double",
+   "default": 2.0,
+   "min": 0.0,
+   "max": 1000.0,
+   "desc": "Extra scaling of obstacle cost terms just for selecting the 'best' candidate (new_obst_cost: obst_cost*factor)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "selection_viapoint_cost_scale",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.0,
+   "max": 100.0,
+   "desc": "Extra scaling of via-point cost terms just for selecting the 'best' candidate. (new_viapt_cost: viapt_cost*factor)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "selection_alternative_time_cost",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "If true, time cost is replaced by the total transition time."
+  },
+  {
+   "group": "HCPlanning",
+   "name": "switching_blocking_period",
+   "type": "double",
+   "default": 0.0,
+   "min": 0.0,
+   "max": 60.0,
+   "desc": "Specify a time duration in seconds that needs to be expired before a switch to new equivalence class is allowed"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "roadmap_graph_no_samples",
+   "type": "int",
+   "default": 15,
+   "min": 1,
+   "max": 100,
+   "desc": "Specify the number of samples generated for creating the roadmap graph, if simple_exploration is turend off"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "roadmap_graph_area_width",
+   "type": "double",
+   "default": 5.0,
+   "min": 0.1,
+   "max": 20.0,
+   "desc": "Specify the width of the area in which sampled will be generated between start and goal [m] (the height equals the start-goal distance)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "roadmap_graph_area_length_scale",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.5,
+   "max": 2.0,
+   "desc": "The length of the rectangular region is determined by the distance between start and goal. This parameter further scales the distance such that the geometric center remains equal!)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "h_signature_prescaler",
+   "type": "double",
+   "default": 1.0,
+   "min": 0.2,
+   "max": 1.0,
+   "desc": "Scale number of obstacle value in order to allow huge number of obstacles. Do not choose it extremly low, otherwise obstacles cannot be distinguished from each other (0.2<H<=1)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "h_signature_threshold",
+   "type": "double",
+   "default": 0.1,
+   "min": 0.0,
+   "max": 1.0,
+   "desc": "Two h-signuteres are assumed to be equal, if both the difference of real parts and complex parts are below the specified threshold"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "obstacle_heading_threshold",
+   "type": "double",
+   "default": 0.45,
+   "min": 0.0,
+   "max": 1.0,
+   "desc": "Specify the value of the normalized scalar product between obstacle heading and goal heading in order to take them (obstacles) into account for exploration)"
+  },
+  {
+   "group": "HCPlanning",
+   "name": "viapoints_all_candidates",
+   "type": "bool",
+   "default": true,
+   "min": false,
+   "max": true,
+   "desc": "If true, all trajectories of different topologies are attached to the set of via-points, otherwise only the trajectory sharing the same one as the initial/global plan is attached (no effect in test_optim_node)."
+  },
+  {
+   "group": "HCPlanning",
+   "name": "visualize_hc_graph",
+   "type": "bool",
+   "default": false,
+   "min": false,
+   "max": true,
+   "desc": "Visualize the graph that is created for exploring new homotopy classes"
+  },
+  {
+   "group": "Recovery",
+   "name": "shrink_horizon_backup",
+   "type": "bool",
+   "default": true,
+   "min": false,
+   "max": true,
+   "desc": "Allows the planner to shrink the horizon temporary (50%) in case of automatically detected issues."
+  },
+  {
+   "group": "Recovery",
+   "name": "oscillation_recovery",
+   "type": "bool",
+   "default": true,
+   "min": false,
+   "max": true,
+   "desc": "Try to detect and resolve oscillations between multiple solutions in the same equivalence class (robot frequently switches between left/right/forward/backwards)."
+  },
+  {
+   "group": "Robot",
+   "name": "max_vel_y",
+   "type": "double",
+   "default": 0.0,
+   "min": 0.0,
+   "max": 100.0,
+   "desc": "Maximum strafing velocity of the robot (should be zero for non-holonomic robots!)"
+  },
+  {
+   "group": "Robot",
+   "name": "acc_lim_y",
+   "type": "double",
+   "default": 0.5,
+   "min": 0.01,
+   "max": 100.0,
+   "desc": "Maximum strafing acceleration of the robot"
+  },
+  {
+   "group": "Robot",
+   "name": "min_turning_radius",
+   "type": "double",
+   "default": 0.0,
+   "min": 0.0,
+   "max": 50.0,
+   "desc": "Minimum turning radius of a carlike robot (diff-drive robot: zero)"
+  },
+  {
+   "group": "Robot",
+   "name": "wheelbase",
+   "type": "double",
+   "default": 1.0,
+   "min": -10.0,
+   "max": 10.0,
+   "desc": "The distance between the drive shaft and steering axle (only required for a carlike robot with 'cmd_angle_instead_rotvel' enabled); The value might be negative for back-wheeled robots!"
+  },
+  {
+   "group": "Robot",
+   "name": "cmd_angle_instead_rotvel",
+   "type": "bool",
+   "default": false,
+   "min": null,
+   "max": null,
+   "desc": "Substitute the rotational velocity in the commanded velocity message by the corresponding steering angle (check 'axles_distance')"
+  }
+ ]
+}

@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>DWA ve TEB parametreleri · ROS AMR Wiki</title>
+<meta name="description" content="dwa_local_planner/DWAPlannerROS yerel planlayıcısının 41 parametresi. Bunların 34&#x27;ü çalışırken rqt_reconfigure ile değiştirilebilir; kalanı yalnızca YAML&#x27;dan okunur.">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg cur"><a href="planlayici-parametreleri.html" aria-current="page">DWA ve TEB</a><ul class="sub"><li><a href="#dwa-parametreleri">DWA parametreleri</a></li><li><a href="#teb-parametreleri">TEB parametreleri</a></li></ul></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">C · Paket referansı</p><h1>DWA ve TEB parametreleri</h1></header>
+<section id="dwa-parametreleri">
+<h2>DWA parametreleri</h2>
+<p><code>dwa_local_planner/DWAPlannerROS</code> yerel planlayıcısının <strong>41 parametresi</strong>. Bunların 34'ü çalışırken <code>rqt_reconfigure</code> ile değiştirilebilir; kalanı yalnızca YAML'dan okunur.</p>
+<div class="call"><b>Bu sayfadaki değerler nereden geliyor?</b>
+<p>Parametre adları, türler, varsayılanlar ve aralıklar bu dökümanın hazırlandığı ROS Noetic paketlerinden (<code>dwa_local_planner</code> 1.17.3, <code>teb_local_planner</code> 0.9.1) okundu: paketlerin dinamik ayar tanımlarından, başlık dosyalarından ve derlenmiş kütüphanelerinin içindeki parametre adlarından. Açıklamalar Türkçe özetlerdir; kesin tanım için resmî ROS wiki sayfalarına bak. Sürümün farklıysa küçük farklar olabilir.</p></div>
+
+<h3>Nasıl verilir?</h3>
+<p><code>move_base</code>'e hangi yerel planlayıcının kullanılacağını söyler, parametreleri planlayıcının adı altında bir YAML dosyasına yazarsın:</p>
+<pre><code># move_base parametresi (launch'ta ya da YAML'da)
+base_local_planner: "dwa_local_planner/DWAPlannerROS"
+
+# dwa.yaml
+DWAPlannerROS:
+  max_vel_x: 0.5
+  min_vel_x: -0.1
+  max_vel_y: 0.0
+  min_vel_y: 0.0
+  vy_samples: 1
+  max_vel_theta: 1.0
+  min_vel_theta: 0.2
+  acc_lim_x: 0.5
+  acc_lim_theta: 1.0
+  sim_time: 2.0
+  xy_goal_tolerance: 0.10
+  yaw_goal_tolerance: 0.10</code></pre>
+<p>Yazmadığın her parametre bu tablodaki varsayılanı alır. Varsayılanlar genel amaçlıdır, senin robotuna göre ayarlanmamıştır; hız ve ivme sınırlarını mutlaka kendi robotuna göre belirle.</p>
+<div class="call"><b>DWA'nın simülasyon adımı</b>
+<p>DWA, yörüngeleri simüle ederken kullandığı zaman adımını (<code>sim_period</code>) <code>1 / controller_frequency</code> olarak hesaplar; parametreyi bulamazsa 20 Hz varsayar (Noetic kaynak kodunda doğrulandı, wiki'de yazmaz). Bu yüzden <code>controller_frequency</code>'yi değiştirmek DWA'nın davranışını da değiştirir.</p></div>
+
+<h3>Hız sınırları</h3>
+<p>Robotun hangi hızlarda gidip dönebileceğini belirler. Diferansiyel sürüşlü robotta yana kayma (<code>y</code>) hızlarını 0 yap.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="dwa-max_vel_x"><td><code>max_vel_x</code></td><td>double</td><td class="n"><code>0.55</code></td><td class="n">—</td><td>En yüksek ileri hız (m/s). Diferansiyel sürüşlü robotta asıl hız sınırı budur.</td></tr>
+<tr id="dwa-min_vel_x"><td><code>min_vel_x</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">—</td><td>En düşük ileri hız (m/s). Negatif verirsen robot geri de gidebilir; 0 iken geri gitmez.</td></tr>
+<tr id="dwa-max_vel_y"><td><code>max_vel_y</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Yana kayma hızının üst sınırı (m/s). Yana kayamayan robotta 0 yap.</td></tr>
+<tr id="dwa-min_vel_y"><td><code>min_vel_y</code></td><td>double</td><td class="n"><code>-0.1</code></td><td class="n">—</td><td>Yana kayma hızının alt sınırı (m/s). Yana kayamayan robotta 0 yap.</td></tr>
+<tr id="dwa-max_vel_trans"><td><code>max_vel_trans</code></td><td>double</td><td class="n"><code>0.55</code></td><td class="n">0 … ∞</td><td>Öteleme hızının mutlak büyüklüğü için üst sınır (m/s).</td></tr>
+<tr id="dwa-min_vel_trans"><td><code>min_vel_trans</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … ∞</td><td>Öteleme hızının mutlak büyüklüğü için alt sınır (m/s).</td></tr>
+<tr id="dwa-max_vel_theta"><td><code>max_vel_theta</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … ∞</td><td>En yüksek dönüş hızı (rad/s), mutlak değer.</td></tr>
+<tr id="dwa-min_vel_theta"><td><code>min_vel_theta</code></td><td>double</td><td class="n"><code>0.4</code></td><td class="n">0 … ∞</td><td>En düşük dönüş hızı (rad/s), mutlak değer. Motorların yenebileceği en küçük dönüş olmalı; çok büyük olursa robot hassas dönemez.</td></tr>
+</tbody></table></div>
+<h3>İvme sınırları</h3>
+<p>Hız değişiminin ne kadar ani olabileceğini sınırlar. Yük taşıyan robotlarda düşük tut.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="dwa-acc_lim_x"><td><code>acc_lim_x</code></td><td>double</td><td class="n"><code>2.5</code></td><td class="n">0 … 20</td><td>İleri yönde ivme sınırı (m/s²).</td></tr>
+<tr id="dwa-acc_lim_y"><td><code>acc_lim_y</code></td><td>double</td><td class="n"><code>2.5</code></td><td class="n">0 … 20</td><td>Yana kayma yönünde ivme sınırı (m/s²).</td></tr>
+<tr id="dwa-acc_lim_theta"><td><code>acc_lim_theta</code></td><td>double</td><td class="n"><code>3.2</code></td><td class="n">0 … 20</td><td>Dönüşte açısal ivme sınırı (rad/s²).</td></tr>
+<tr id="dwa-acc_lim_trans"><td><code>acc_lim_trans</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … ∞</td><td>Öteleme ivmesinin mutlak büyüklüğü için üst sınır (m/s²). Noetic DWA&#x27;sında (1.17.3) bu değer okunur ama yörünge örneklemesinde kullanılmaz; ivmeyi <code>acc_lim_x</code>/<code>acc_lim_y</code>/<code>acc_lim_theta</code> sınırlar.</td></tr>
+</tbody></table></div>
+<h3>Hedef ve durma toleransı</h3>
+<p>Robotun &quot;hedefe vardım&quot; ve &quot;durdum&quot; demesi için gereken hassasiyet.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="dwa-xy_goal_tolerance"><td><code>xy_goal_tolerance</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Hedefe bu mesafeden (m) yakınsa konum olarak vardı sayılır. Çok küçük olursa robot hedefte titreyebilir.</td></tr>
+<tr id="dwa-yaw_goal_tolerance"><td><code>yaw_goal_tolerance</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Hedef yönüne bu açıdan (rad) az fark varsa yön olarak vardı sayılır.</td></tr>
+<tr id="dwa-trans_stopped_vel"><td><code>trans_stopped_vel</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Öteleme hızı bunun altındaysa robot ötelemede &quot;durmuş&quot; sayılır (m/s).</td></tr>
+<tr id="dwa-theta_stopped_vel"><td><code>theta_stopped_vel</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Dönüş hızı bunun altındaysa robot dönmede &quot;durmuş&quot; sayılır (rad/s).</td></tr>
+<tr id="dwa-latch_xy_goal_tolerance"><td><code>latch_xy_goal_tolerance</code> <span class="tag2">yalnızca YAML</span></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise robot konum toleransına bir kez girdikten sonra konumu tekrar denetlenmez, yalnızca hedef yönüne döner. Hedefte kayıp geri çıkıp titreyen robotlarda işe yarar.</td></tr>
+</tbody></table></div>
+<h3>İleri simülasyon ve örnekleme</h3>
+<p>DWA&#x27;nın çekirdeği: geçerli hız aralığından örnekler alır, her biri için kısa bir yörünge simüle eder, en iyisini seçer.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="dwa-sim_time"><td><code>sim_time</code></td><td>double</td><td class="n"><code>1.7</code></td><td class="n">0 … ∞</td><td>Yörüngelerin ileriye doğru simüle edileceği süre (sn). Büyütmek daha uzağı görür ve akıcı gider, ama dar yerlerde robotu &quot;korkak&quot; yapar ve hesabı artırır.</td></tr>
+<tr id="dwa-sim_granularity"><td><code>sim_granularity</code></td><td>double</td><td class="n"><code>0.025</code></td><td class="n">0 … ∞</td><td>Her yörünge boyunca çarpışma denetiminin adım aralığı (m).</td></tr>
+<tr id="dwa-angular_sim_granularity"><td><code>angular_sim_granularity</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … ∞</td><td>Dönüşler için çarpışma denetiminin açısal adım aralığı (rad).</td></tr>
+<tr id="dwa-vx_samples"><td><code>vx_samples</code></td><td>int</td><td class="n"><code>3</code></td><td class="n">1 … ∞</td><td>İleri hız uzayından alınacak örnek sayısı.</td></tr>
+<tr id="dwa-vy_samples"><td><code>vy_samples</code></td><td>int</td><td class="n"><code>10</code></td><td class="n">1 … ∞</td><td>Yana hız uzayından alınacak örnek sayısı. En az 1; yana kayamayan robotta <code>max_vel_y</code>/<code>min_vel_y</code> 0 iken 1 kullan.</td></tr>
+<tr id="dwa-vth_samples"><td><code>vth_samples</code></td><td>int</td><td class="n"><code>20</code></td><td class="n">1 … ∞</td><td>Dönüş hızı uzayından alınacak örnek sayısı. Büyütmek dönüşleri inceltir, işlemciyi artırır.</td></tr>
+<tr id="dwa-use_dwa"><td><code>use_dwa</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>true ise örnekleme, robotun ivme sınırlarının izin verdiği küçük bir &quot;dinamik pencere&quot; ile kısıtlanır; false ise tüm hız uzayı taranır.</td></tr>
+</tbody></table></div>
+<h3>Maliyet fonksiyonu</h3>
+<p>Aday yörüngeler bu ağırlıklarla puanlanır; ağırlıkların birbirine oranı robotun tavrını belirler.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="dwa-path_distance_bias"><td><code>path_distance_bias</code></td><td>double</td><td class="n"><code>0.6</code></td><td class="n">0 … ∞</td><td>Global yola yakın kalmanın ağırlığı. Büyütürsen robot planı daha sadık izler.</td></tr>
+<tr id="dwa-goal_distance_bias"><td><code>goal_distance_bias</code></td><td>double</td><td class="n"><code>0.8</code></td><td class="n">0 … ∞</td><td>Hedefe yaklaşmanın ağırlığı. Büyütürsen robot yoldan sapıp hedefe doğru kestirmeyi dener.</td></tr>
+<tr id="dwa-occdist_scale"><td><code>occdist_scale</code></td><td>double</td><td class="n"><code>0.01</code></td><td class="n">0 … ∞</td><td>Engellerden uzak durmanın ağırlığı. Büyütürsen robot engellerden daha çok kaçınır, dar geçitlerde takılabilir.</td></tr>
+<tr id="dwa-twirling_scale"><td><code>twirling_scale</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … ∞</td><td>Robotun yönünü değiştirmesini cezalandıran ağırlık; büyükse robot dönmekten kaçınır.</td></tr>
+<tr id="dwa-stop_time_buffer"><td><code>stop_time_buffer</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … ∞</td><td>Bir yörüngenin geçerli sayılması için robotun çarpışmadan en az bu kadar süre (sn) önce durabilmesi gerekir.</td></tr>
+<tr id="dwa-forward_point_distance"><td><code>forward_point_distance</code></td><td>double</td><td class="n"><code>0.325</code></td><td class="n">—</td><td>Robot merkezinin ilerisine konan ek puanlama noktasının merkezden uzaklığı (m).</td></tr>
+<tr id="dwa-sum_scores"><td><code>sum_scores</code> <span class="tag2">yalnızca YAML</span></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise engel maliyeti yörünge boyunca toplanır; false ise yörüngenin en yüksek engel maliyeti alınır. (Resmî wiki&#x27;de yok; Noetic kaynak kodunda doğrulandı.)</td></tr>
+<tr id="dwa-cheat_factor"><td><code>cheat_factor</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>1</code></td><td class="n">—</td><td>Hedefe yaklaşırken robotun &quot;burnunu yola hizalama&quot; maliyetinin ne zaman kapatılacağını belirleyen çarpan: hedefe uzaklığın karesi <code>forward_point_distance</code>² × <code>cheat_factor</code> değerinden küçükse hizalama maliyeti devre dışı kalır. (Resmî wiki&#x27;de yok; Noetic kaynak kodundan.)</td></tr>
+</tbody></table></div>
+<h3>Ayak izi ölçekleme</h3>
+<p>Hız arttıkça robotun ayak izini büyüterek yüksek hızda engellere daha çok pay bırakır.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="dwa-scaling_speed"><td><code>scaling_speed</code></td><td>double</td><td class="n"><code>0.25</code></td><td class="n">0 … ∞</td><td>Ayak izi ölçeklemesinin başladığı hız (m/s).</td></tr>
+<tr id="dwa-max_scaling_factor"><td><code>max_scaling_factor</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … ∞</td><td>Ayak izinin ölçekleneceği en büyük çarpan (ek pay oranı).</td></tr>
+</tbody></table></div>
+<h3>Salınım ve plan</h3>
+<p>Robotun sağa sola gidip gelmesini (salınım) ve global planın izlenişini yönetir.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="dwa-oscillation_reset_dist"><td><code>oscillation_reset_dist</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">0 … ∞</td><td>Salınım bayrakları sıfırlanmadan önce robotun kat etmesi gereken mesafe (m).</td></tr>
+<tr id="dwa-oscillation_reset_angle"><td><code>oscillation_reset_angle</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0 … ∞</td><td>Salınım bayrakları sıfırlanmadan önce robotun dönmesi gereken açı (rad).</td></tr>
+<tr id="dwa-prune_plan"><td><code>prune_plan</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise robot global planın ilk noktası yerine kendisine en yakın noktasından izlemeye başlar.</td></tr>
+</tbody></table></div>
+<h3>Yayın ve çerçeve</h3>
+<p>Görselleştirme çıktıları ve çerçeve adı.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="dwa-global_frame_id"><td><code>global_frame_id</code> <span class="tag2">yalnızca YAML</span></td><td>string</td><td class="n"><code>&quot;odom&quot;</code></td><td class="n">—</td><td><code>publish_traj_pc</code> ile yayınlanan yörünge bulutunun çerçevesi; yerel costmap&#x27;in global çerçevesiyle aynı olmalı.</td></tr>
+<tr id="dwa-odom_topic"><td><code>odom_topic</code> <span class="tag2">yalnızca YAML</span></td><td>string</td><td class="n"><code>&quot;odom&quot;</code></td><td class="n">—</td><td>Robotun anlık hızının okunduğu <code>nav_msgs/Odometry</code> topic&#x27;i. Odometri başka bir adla yayınlanıyorsa (ör. EKF çıktısı <code>odometry/filtered</code>) bunu ayarla.</td></tr>
+<tr id="dwa-publish_traj_pc"><td><code>publish_traj_pc</code> <span class="tag2">yalnızca YAML</span></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise değerlendirilen yörüngeleri bir PointCloud olarak yayınlar (hata ayıklama).</td></tr>
+<tr id="dwa-publish_cost_grid_pc"><td><code>publish_cost_grid_pc</code> <span class="tag2">yalnızca YAML</span></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise maliyet ızgarasını renkli bir PointCloud olarak yayınlar (hata ayıklama).</td></tr>
+</tbody></table></div>
+
+<h3>Sık görülen durumlar için başlangıç noktaları</h3>
+<p>Bunlar kesin kurallar değil, denemeye başlanacak yerlerdir. Her seferinde <strong>tek parametre</strong> değiştir ve sonucu RViz'de izle.</p>
+<div class="tw"><table><thead><tr><th>Belirti</th><th>Önce bunlara bak</th></tr></thead><tbody>
+<tr><td>Robot global yoldan sapıyor, kestirme yapıyor</td><td><code>path_distance_bias</code> ↑ ya da <code>goal_distance_bias</code> ↓</td></tr>
+<tr><td>Robot yola fazla yapışıyor, hedefe ilerlemiyor</td><td><code>goal_distance_bias</code> ↑ ya da <code>path_distance_bias</code> ↓</td></tr>
+<tr><td>Engellere fazla yaklaşıyor</td><td><code>occdist_scale</code> ↑; costmap'te <code>inflation_radius</code> ve <code>footprint</code></td></tr>
+<tr><td>Dar geçitten geçmiyor</td><td><code>occdist_scale</code> ↓; costmap'te <code>inflation_radius</code> ↓</td></tr>
+<tr><td>Sağa sola gidip geliyor (salınım)</td><td><code>sim_time</code> ↑, <code>oscillation_reset_dist</code>, <code>occdist_scale</code> ↓</td></tr>
+<tr><td>Yerinde dönemiyor ya da dönüşte takılıyor</td><td><code>min_vel_theta</code> ↓, <code>acc_lim_theta</code> ↑, <code>twirling_scale</code> 0</td></tr>
+<tr><td>Hedefte titriyor</td><td><code>xy_goal_tolerance</code> ↑, <code>latch_xy_goal_tolerance: true</code></td></tr>
+<tr><td>Çok yavaş</td><td><code>max_vel_x</code> ↑, <code>acc_lim_x</code> ↑, <code>vx_samples</code> ↑</td></tr>
+<tr><td>Robot yana kaymayı deniyor (diferansiyel robot)</td><td><code>max_vel_y: 0</code>, <code>min_vel_y: 0</code>, <code>vy_samples: 1</code></td></tr>
+<tr><td>İşlemci yükü yüksek</td><td><code>vx_samples</code>, <code>vth_samples</code> ↓; <code>sim_time</code> ↓</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="teb-parametreleri">
+<h2>TEB parametreleri</h2>
+<p><code>teb_local_planner/TebLocalPlannerROS</code> yerel planlayıcısının <strong>111 parametresi</strong>. Bunların 79'ü çalışırken <code>rqt_reconfigure</code> ile değiştirilebilir; geri kalanı (ayak izi modeli, dönüş yarıçapı, örnek sayıları gibi) yalnızca YAML'dan okunur ve tabloda <span class="tag2">yalnızca YAML</span> etiketiyle işaretlidir.</p>
+<p><strong>TEB</strong> (Timed Elastic Band), yolu zaman etiketli bir "elastik bant" olarak ele alır: başlangıç yörüngesini engellerden uzaklaştırıp hız, ivme ve kinematik kısıtlarına uydurur ve toplam süreyi kısaltır. Her hedef (engelden uzak dur, hızlı git, kısıtlara uy) bir <strong>ağırlıkla</strong> ifade edilir; parametrelerin çoğu bu dengeyi ayarlamak içindir.</p>
+
+<h3>Nasıl verilir?</h3>
+<pre><code>base_local_planner: "teb_local_planner/TebLocalPlannerROS"
+
+# teb.yaml (diferansiyel sürüşlü robot için başlangıç)
+TebLocalPlannerROS:
+  odom_topic: odom
+  map_frame: odom
+
+  max_vel_x: 0.5
+  max_vel_x_backwards: 0.1
+  max_vel_theta: 1.0
+  acc_lim_x: 0.5
+  acc_lim_theta: 1.0
+  min_turning_radius: 0.0        # diferansiyel sürüş: 0
+  footprint_model:
+    type: "polygon"
+    vertices: [[0.4, 0.3], [0.4, -0.3], [-0.4, -0.3], [-0.4, 0.3]]
+
+  xy_goal_tolerance: 0.10
+  yaw_goal_tolerance: 0.10
+  min_obstacle_dist: 0.3
+  inflation_dist: 0.5
+  include_costmap_obstacles: true
+  enable_homotopy_class_planning: false</code></pre>
+<div class="call warn"><b>Varsayılanlar üç katmandan gelir</b>
+<p>Bir parametreyi YAML'a yazmazsan değeri şu sırayla belirlenir (sağdaki soldakini ezer): <em>kaynak koddaki başlangıç değeri</em> → <em>dinamik ayar tanımındaki varsayılan</em> → <em>YAML'da verdiğin değer</em>. Bu sayfadaki "Varsayılan" sütunu, geçerli olan değeri gösterir: dinamik ayarda tanımlı olanlar için o değer, <span class="tag2">yalnızca YAML</span> olanlar için kaynak koddaki başlangıç değeri (ayak izi modeli parametrelerinde TEB wiki'sindeki varsayılanlar). Bu yüzden kaynak koddaki bazı sabitlerle (örneğin <code>selection_obst_cost_scale</code> için 100) sayfadaki değer (2) farklı olabilir.</p></div>
+<div class="call"><b>Costmap ayak izi ile TEB ayak izi</b>
+<p>Costmap'in <code>footprint</code>'i, yolun uygulanabilir olup olmadığını (çarpışma denetimi) belirler; TEB'in <code>footprint_model</code>'i ise optimizasyonda engellerden uzaklığı hesaplamak için kullanılır. İkisi robotun gerçek şekliyle <strong>tutarlı</strong> olmalıdır; biri diğerinden küçükse robot ya dar yerlerden geçemez ya da engellere yaklaşır.</p></div>
+<div class="call"><b>Eski adlar</b>
+<p>Bazı parametreler yeniden adlandırılmıştır; TEB eski adı görürse uyarı verir. Örneğin <code>global_plan_via_point_sep</code> artık <code>global_plan_viapoint_sep</code>, <code>alternative_time_cost</code> ise <code>selection_alternative_time_cost</code>'tir.</p></div>
+
+<h3>Genel</h3>
+<p>Planlayıcının hangi topic ve çerçeveyle çalışacağı.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-odom_topic"><td><code>odom_topic</code> <span class="tag2">yalnızca YAML</span></td><td>string</td><td class="n"><code>&quot;odom&quot;</code></td><td class="n">—</td><td>Robot sürücüsünün yayınladığı odometri topic&#x27;i; robotun anlık hızı buradan okunur.</td></tr>
+<tr id="teb-map_frame"><td><code>map_frame</code> <span class="tag2">yalnızca YAML</span></td><td>string</td><td class="n"><code>&quot;odom&quot;</code></td><td class="n">—</td><td>Eski bir parametre: kurulu sürümde (0.9.1) planlayıcı başlarken bunu yerel costmap&#x27;in <code>global_frame</code>&#x27;iyle ezer, bu yüzden ayarlamanın etkisi yoktur. Planlama çerçevesini değiştirmek için yerel costmap&#x27;in <code>global_frame</code>&#x27;ini değiştir.</td></tr>
+</tbody></table></div>
+<h3>Yörünge</h3>
+<p>Zaman ayarlı elastik bandın (yörüngenin) nasıl örneklendiği ve global plana nasıl bağlandığı.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-teb_autosize"><td><code>teb_autosize</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Yörünge uzunluğunu zamansal çözünürlüğe (<code>dt_ref</code>) göre optimizasyon sırasında otomatik ayarlar. Önerilen: true.</td></tr>
+<tr id="teb-dt_ref"><td><code>dt_ref</code></td><td>double</td><td class="n"><code>0.3</code></td><td class="n">0.01 … 1</td><td>Yörüngenin zaman adımı (sn). Genelde kontrol döngüsü periyodu (1 / <code>controller_frequency</code>) civarında seçilir. Küçültmek daha ince ama daha ağır bir plan demektir.</td></tr>
+<tr id="teb-dt_hysteresis"><td><code>dt_hysteresis</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0.002 … 0.5</td><td>Otomatik yeniden boyutlandırmada kullanılan histerezis (sn); genelde <code>dt_ref</code>&#x27;in %10&#x27;u. Zaman adımı bu bandın içindeyse örnek eklenmez/çıkarılmaz.</td></tr>
+<tr id="teb-min_samples"><td><code>min_samples</code> <span class="tag2">yalnızca YAML</span></td><td>int</td><td class="n"><code>3</code></td><td class="n">—</td><td>Yörüngedeki en az örnek (poz) sayısı. 2&#x27;den büyük olmalı; 3&#x27;ün altı uyarı verir.</td></tr>
+<tr id="teb-max_samples"><td><code>max_samples</code> <span class="tag2">yalnızca YAML</span></td><td>int</td><td class="n"><code>500</code></td><td class="n">—</td><td>Yörüngedeki en çok örnek sayısı. Çok küçükse çözünürlük robot modeli ve engellerden kaçınma için yetersiz kalır.</td></tr>
+<tr id="teb-global_plan_overwrite_orientation"><td><code>global_plan_overwrite_orientation</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Bazı global planlayıcılar ara hedeflerin yönünü üretmez; true ise TEB bu yönleri kendisi belirler.</td></tr>
+<tr id="teb-allow_init_with_backwards_motion"><td><code>allow_init_with_backwards_motion</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>Hedef yerel costmap içinde robotun arkasındaysa yörüngenin geri hareketle başlatılmasına izin verir. Yalnızca robotun arkasında sensör varsa önerilir.</td></tr>
+<tr id="teb-max_global_plan_lookahead_dist"><td><code>max_global_plan_lookahead_dist</code></td><td>double</td><td class="n"><code>3</code></td><td class="n">0 … 50</td><td>Optimizasyonda dikkate alınan global plan parçasının en büyük uzunluğu (m). 0 ya da negatifse sınırsız; her durumda yerel costmap boyutuyla da sınırlıdır. Büyütmek daha uzağı planlar ama hesabı artırır.</td></tr>
+<tr id="teb-global_plan_prune_distance"><td><code>global_plan_prune_distance</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>1</code></td><td class="n">—</td><td>Global plan budanırken robotun gerisinde tutulacak mesafe (m); robotun bu mesafeden daha gerisinde kalan plan noktaları atılır.</td></tr>
+<tr id="teb-exact_arc_length"><td><code>exact_arc_length</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise hız, ivme ve dönüş hızı hesaplarında tam yay uzunluğu kullanılır (daha doğru, daha fazla işlemci); false ise öklid yaklaşımı.</td></tr>
+<tr id="teb-force_reinit_new_goal_dist"><td><code>force_reinit_new_goal_dist</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 10</td><td>Hedef bu mesafeden (m) fazla değişirse yörünge sıfırdan başlatılır (sıcak başlangıç atlanır).</td></tr>
+<tr id="teb-force_reinit_new_goal_angular"><td><code>force_reinit_new_goal_angular</code></td><td>double</td><td class="n"><code>0.78</code></td><td class="n">0 … 4</td><td>Hedef yönü bu açıdan (rad) fazla değişirse yörünge sıfırdan başlatılır.</td></tr>
+<tr id="teb-feasibility_check_no_poses"><td><code>feasibility_check_no_poses</code></td><td>int</td><td class="n"><code>5</code></td><td class="n">0 … 50</td><td>Tahmin edilen planın kaçıncı pozuna kadar uygulanabilirliğin (çarpışma vb.) her adımda denetleneceği. Büyütmek daha ileriyi denetler.</td></tr>
+<tr id="teb-control_look_ahead_poses"><td><code>control_look_ahead_poses</code> <span class="tag2">yalnızca YAML</span></td><td>int</td><td class="n"><code>1</code></td><td class="n">—</td><td>Hız komutunu çıkarmak için yörüngenin kaçıncı pozunun kullanılacağı. 1 = hemen bir sonraki poz.</td></tr>
+<tr id="teb-min_resolution_collision_check_angular"><td><code>min_resolution_collision_check_angular</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>3.14159</code></td><td class="n">—</td><td>Costmap çarpışma denetiminde kullanılan en küçük açısal çözünürlük (rad); sağlanmazsa ara örnekler eklenir.</td></tr>
+<tr id="teb-publish_feedback"><td><code>publish_feedback</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>Tam yörüngeyi ve etkin engel listesini yayınlar. Yalnızca değerlendirme ve hata ayıklama için aç.</td></tr>
+<tr id="teb-visualize_with_time_as_z_axis_scale"><td><code>visualize_with_time_as_z_axis_scale</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … 1</td><td>0&#x27;dan büyükse yörünge ve engeller zamanı z ekseni alarak 3B görselleştirilir. En çok dinamik engellerde işe yarar.</td></tr>
+</tbody></table></div>
+<h3>Via (ara) noktaları</h3>
+<p>Global plandan çıkarılan ara noktaların yörüngeye ne kadar bağlı olduğu.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-global_plan_viapoint_sep"><td><code>global_plan_viapoint_sep</code></td><td>double</td><td class="n"><code>-0.1</code></td><td class="n">-0.1 … 5</td><td>Global plandan çıkarılan ardışık via noktaları arası en küçük mesafe (m). Negatifse via noktaları kullanılmaz.</td></tr>
+<tr id="teb-via_points_ordered"><td><code>via_points_ordered</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise planlayıcı via noktalarının sırasına uyar.</td></tr>
+</tbody></table></div>
+<h3>Robot</h3>
+<p>Robotun hız/ivme sınırları ve sürüş tipi. Diferansiyel sürüşlü robot için <code>min_turning_radius: 0</code>, <code>max_vel_y: 0</code> olmalı.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-max_vel_x"><td><code>max_vel_x</code></td><td>double</td><td class="n"><code>0.4</code></td><td class="n">0.01 … 100</td><td>En yüksek ileri hız (m/s).</td></tr>
+<tr id="teb-max_vel_x_backwards"><td><code>max_vel_x_backwards</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0.01 … 100</td><td>Geri giderken en yüksek hız (m/s). Robotun geri gitmesini istemiyorsan çok küçük ver (alt sınırı 0,01) ve <code>weight_kinematics_forward_drive</code>&#x27;ı büyüt.</td></tr>
+<tr id="teb-max_vel_y"><td><code>max_vel_y</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … 100</td><td>Yana kayma hızı sınırı (m/s). Holonomik olmayan (diferansiyel, araba benzeri) robotlarda 0 olmalı.</td></tr>
+<tr id="teb-max_vel_theta"><td><code>max_vel_theta</code></td><td>double</td><td class="n"><code>0.3</code></td><td class="n">0.01 … 100</td><td>En yüksek dönüş hızı (rad/s).</td></tr>
+<tr id="teb-acc_lim_x"><td><code>acc_lim_x</code></td><td>double</td><td class="n"><code>0.5</code></td><td class="n">0.01 … 100</td><td>En yüksek öteleme ivmesi (m/s²).</td></tr>
+<tr id="teb-acc_lim_y"><td><code>acc_lim_y</code></td><td>double</td><td class="n"><code>0.5</code></td><td class="n">0.01 … 100</td><td>Yana kayma ivmesi sınırı (m/s²); yalnızca holonomik robotlarda kullanılır.</td></tr>
+<tr id="teb-acc_lim_theta"><td><code>acc_lim_theta</code></td><td>double</td><td class="n"><code>0.5</code></td><td class="n">0.01 … 100</td><td>En yüksek dönüş ivmesi (rad/s²).</td></tr>
+<tr id="teb-min_turning_radius"><td><code>min_turning_radius</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … 50</td><td>Araba benzeri robot için en küçük dönüş yarıçapı (m). Diferansiyel sürüşlü robotta 0 olmalı; sıfırdan büyük değer robotun yerinde dönmesini kısıtlar.</td></tr>
+<tr id="teb-wheelbase"><td><code>wheelbase</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">-10 … 10</td><td>Arka aks ile ön aks arası mesafe (m). Yalnızca <code>cmd_angle_instead_rotvel</code> açık araba benzeri robotlarda gerekir; arka tekerlekten sürülenlerde negatif olabilir.</td></tr>
+<tr id="teb-cmd_angle_instead_rotvel"><td><code>cmd_angle_instead_rotvel</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise komuttaki dönüş hızı yerine ilgili direksiyon açısı [−π/2, π/2] yazılır (araba benzeri robotlar için). Dönüş hızının anlamı değiştiği için dikkatli kullan.</td></tr>
+<tr id="teb-is_footprint_dynamic"><td><code>is_footprint_dynamic</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise uygulanabilirlik denetiminden önce ayak izi güncellenir (ayak izi zamanla değişiyorsa).</td></tr>
+</tbody></table></div>
+<h3>Ayak izi modeli</h3>
+<p>TEB&#x27;in engel mesafesi hesaplarında kullandığı robot şekli. YAML&#x27;da <code>footprint_model:</code> altında verilir. Costmap&#x27;in <code>footprint</code>&#x27;inden bağımsızdır (o, uygulanabilirlik denetimi için kullanılır); ikisini tutarlı tut. Araba benzeri robotlarda [0, 0] noktası arka aksın (dönme ekseninin) üzerindedir. Çizgi modelinde robotun tamamını kapsamak için <code>min_obstacle_dist</code>&#x27;i ayrıca artırman gerekir. <code>type</code> verilmezse <code>point</code> kullanılır. Seçilen modelin alt parametrelerinin <strong>varsayılanı yoktur</strong>: eksikse TEB bir hata yazıp <code>point</code> modeline döner (loglarda &quot;Footprint model ... cannot be loaded&quot; satırına bak).</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-footprint_model-type"><td><code>footprint_model/type</code> <span class="tag2">yalnızca YAML</span></td><td>string</td><td class="n"><code>&quot;point&quot;</code></td><td class="n">—</td><td>Robot modeli: <code>point</code>, <code>circular</code>, <code>line</code>, <code>two_circles</code> ya da <code>polygon</code>. Karmaşık model daha doğru ama daha ağırdır.</td></tr>
+<tr id="teb-footprint_model-radius"><td><code>footprint_model/radius</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>—</code></td><td class="n">—</td><td><code>circular</code> modeli için yarıçap (m). Dairenin merkezi robotun dönme eksenindedir.</td></tr>
+<tr id="teb-footprint_model-line_start"><td><code>footprint_model/line_start</code> <span class="tag2">yalnızca YAML</span></td><td>double[2]</td><td class="n"><code>—</code></td><td class="n">—</td><td><code>line</code> modeli için çizginin başlangıç noktası [x, y] (m).</td></tr>
+<tr id="teb-footprint_model-line_end"><td><code>footprint_model/line_end</code> <span class="tag2">yalnızca YAML</span></td><td>double[2]</td><td class="n"><code>—</code></td><td class="n">—</td><td><code>line</code> modeli için çizginin bitiş noktası [x, y] (m).</td></tr>
+<tr id="teb-footprint_model-front_offset"><td><code>footprint_model/front_offset</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>—</code></td><td class="n">—</td><td><code>two_circles</code> modeli için ön dairenin merkezinin, robotun x ekseni boyunca dönme ekseninden ne kadar ileride olduğu (m). Dönme ekseni [0, 0] kabul edilir; ofsetler negatif olabilir.</td></tr>
+<tr id="teb-footprint_model-front_radius"><td><code>footprint_model/front_radius</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>—</code></td><td class="n">—</td><td><code>two_circles</code> modeli için ön dairenin yarıçapı (m).</td></tr>
+<tr id="teb-footprint_model-rear_offset"><td><code>footprint_model/rear_offset</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>—</code></td><td class="n">—</td><td><code>two_circles</code> modeli için arka dairenin merkezinin, robotun x ekseni boyunca dönme ekseninden ne kadar geride olduğu (m).</td></tr>
+<tr id="teb-footprint_model-rear_radius"><td><code>footprint_model/rear_radius</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>—</code></td><td class="n">—</td><td><code>two_circles</code> modeli için arka dairenin yarıçapı (m).</td></tr>
+<tr id="teb-footprint_model-vertices"><td><code>footprint_model/vertices</code> <span class="tag2">yalnızca YAML</span></td><td>double[][2]</td><td class="n"><code>—</code></td><td class="n">—</td><td><code>polygon</code> modeli için köşe noktaları [[x1, y1], [x2, y2], …] (m), robotun dönme eksenine göre. Çokgen her zaman kapalıdır: ilk köşeyi sonda tekrarlama.</td></tr>
+</tbody></table></div>
+<h3>Hedef toleransı</h3>
+<p>Hedefe varış hassasiyeti.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-xy_goal_tolerance"><td><code>xy_goal_tolerance</code></td><td>double</td><td class="n"><code>0.2</code></td><td class="n">0.001 … 10</td><td>Hedef konumuna izin verilen son öklid uzaklığı (m).</td></tr>
+<tr id="teb-yaw_goal_tolerance"><td><code>yaw_goal_tolerance</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0.001 … 3.2</td><td>Hedef yönüne izin verilen son yön hatası (rad).</td></tr>
+<tr id="teb-free_goal_vel"><td><code>free_goal_vel</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise planlama sırasında robotun hedefte sıfırdan farklı (örneğin azami) hızla varmasına izin verilir; robot hedefte durmak zorunda kalmaz.</td></tr>
+<tr id="teb-complete_global_plan"><td><code>complete_global_plan</code> <span class="tag2">yalnızca YAML</span></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>true ise robot hedefi geçse bile global planı erken bitirmez; planın sonuna kadar gider.</td></tr>
+</tbody></table></div>
+<h3>Engeller</h3>
+<p>Engellerden ne kadar uzak durulacağı ve costmap engellerinin nasıl işleneceği.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-min_obstacle_dist"><td><code>min_obstacle_dist</code></td><td>double</td><td class="n"><code>0.5</code></td><td class="n">0 … 10</td><td>Engellerden korunması istenen en küçük mesafe (m). Mesafe, seçtiğin <code>footprint_model</code>&#x27;e göre ölçülür: varsayılan <code>point</code> modelinde robotun merkez noktasından ölçülür, bu yüzden robotun yarıçapını bu değere kendin eklemelisin; <code>circular</code> modelinde yarıçap otomatik eklenir. Robot engellere fazla yaklaşıyorsa büyüt, dar geçitten geçemiyorsa küçült.</td></tr>
+<tr id="teb-inflation_dist"><td><code>inflation_dist</code></td><td>double</td><td class="n"><code>0.6</code></td><td class="n">0 … 15</td><td>Engel çevresinde sıfırdan büyük ceza uygulanan tampon bölge (m). Etkili olması için <code>min_obstacle_dist</code>&#x27;ten büyük olmalı.</td></tr>
+<tr id="teb-dynamic_obstacle_inflation_dist"><td><code>dynamic_obstacle_inflation_dist</code></td><td>double</td><td class="n"><code>0.6</code></td><td class="n">0 … 15</td><td>Dinamik engellerin tahmin edilen konumları çevresindeki tampon bölge (m).</td></tr>
+<tr id="teb-include_dynamic_obstacles"><td><code>include_dynamic_obstacles</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise dinamik engellerin hareketi sabit hız modeliyle tahmin edilir (homotopi sınıfı aramasını da etkiler); false ise tüm engeller durağan sayılır.</td></tr>
+<tr id="teb-include_costmap_obstacles"><td><code>include_costmap_obstacles</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Costmap&#x27;teki engellerin doğrudan hesaba katılıp katılmayacağı. Ayrı bir engel algılama/kümeleme yoksa true olmalı. Dolu her costmap hücresi bir nokta engel sayılır; bu yüzden costmap çözünürlüğünü çok küçük seçme (hesap süresi artar).</td></tr>
+<tr id="teb-legacy_obstacle_association"><td><code>legacy_obstacle_association</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise eski ilişkilendirme (her engel için en yakın TEB pozunu bul), false ise yenisi (her poz için yalnızca ilgili engelleri bul).</td></tr>
+<tr id="teb-obstacle_association_force_inclusion_factor"><td><code>obstacle_association_force_inclusion_factor</code></td><td>double</td><td class="n"><code>1.5</code></td><td class="n">0 … 100</td><td>Yeni ilişkilendirmede <code>min_obstacle_dist</code>&#x27;in bu katı kadar yakındaki tüm engeller zorunlu olarak dahil edilir. Örn. 2,0: 2 × <code>min_obstacle_dist</code> yarıçapı.</td></tr>
+<tr id="teb-obstacle_association_cutoff_factor"><td><code>obstacle_association_cutoff_factor</code></td><td>double</td><td class="n"><code>5</code></td><td class="n">1 … 100</td><td><code>min_obstacle_dist</code>&#x27;in bu katından uzak tüm engeller optimizasyonda yok sayılır. Önce <code>force_inclusion_factor</code> işlenir.</td></tr>
+<tr id="teb-costmap_obstacles_behind_robot_dist"><td><code>costmap_obstacles_behind_robot_dist</code></td><td>double</td><td class="n"><code>1.5</code></td><td class="n">0 … 20</td><td>Robotun arkasındaki dolu costmap hücrelerinden, ne kadar uzaklığa (m) kadar olanların planlamada dikkate alınacağı.</td></tr>
+<tr id="teb-obstacle_poses_affected"><td><code>obstacle_poses_affected</code></td><td>int</td><td class="n"><code>30</code></td><td class="n">0 … 200</td><td>Her engel yörüngedeki en yakın poza bağlanır (hesap yükünü azaltmak için); bu pozun ayrıca kaç komşusunun etkileneceği.</td></tr>
+<tr id="teb-costmap_converter_plugin"><td><code>costmap_converter_plugin</code> <span class="tag2">yalnızca YAML</span></td><td>string</td><td class="n"><code>&quot;&quot;</code></td><td class="n">—</td><td>Costmap hücrelerini nokta/çizgi/çokgene çeviren <code>costmap_converter</code> eklentisinin adı. Boş bırakılırsa dolu her hücre nokta engel sayılır.</td></tr>
+<tr id="teb-costmap_converter_spin_thread"><td><code>costmap_converter_spin_thread</code> <span class="tag2">yalnızca YAML</span></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>true ise dönüştürücü kendi geri çağırma kuyruğunu ayrı bir iş parçacığında çalıştırır. Dönüştürücünün çalışma sıklığı bu sürümde (0.9.1) parametreyle ayarlanamaz, 5 Hz&#x27;e sabittir; <code>costmap_converter_rate</code> verilse de okunmaz.</td></tr>
+</tbody></table></div>
+<h3>Optimizasyon</h3>
+<p>Optimizasyonun kaç adım çalışacağı ve hangi hedeflerin ne kadar önemli olduğu. Ağırlıklar bir &quot;ceza&quot; gibidir: büyütülen hedef daha sıkı uygulanır.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-no_inner_iterations"><td><code>no_inner_iterations</code></td><td>int</td><td class="n"><code>5</code></td><td class="n">1 … 100</td><td>Her dış döngü adımında çözücünün çalıştırılacağı iç iterasyon sayısı.</td></tr>
+<tr id="teb-no_outer_iterations"><td><code>no_outer_iterations</code></td><td>int</td><td class="n"><code>4</code></td><td class="n">1 … 100</td><td>Her dış döngü adımı yörüngeyi yeniden boyutlandırır ve <code>no_inner_iterations</code> kadar çözücü çalıştırır. İkisinin çarpımı planlama süresini belirler.</td></tr>
+<tr id="teb-optimization_activate"><td><code>optimization_activate</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Optimizasyonu açar/kapatır.</td></tr>
+<tr id="teb-optimization_verbose"><td><code>optimization_verbose</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>Ayrıntılı optimizasyon bilgisi yazdırır.</td></tr>
+<tr id="teb-penalty_epsilon"><td><code>penalty_epsilon</code></td><td>double</td><td class="n"><code>0.05</code></td><td class="n">0 … 1</td><td>Sert kısıtları yaklaşık ifade eden ceza fonksiyonlarına küçük bir güvenlik payı ekler.</td></tr>
+<tr id="teb-weight_max_vel_x"><td><code>weight_max_vel_x</code></td><td>double</td><td class="n"><code>2</code></td><td class="n">0 … 1000</td><td>Azami öteleme hızı sınırına uyma ağırlığı.</td></tr>
+<tr id="teb-weight_max_vel_y"><td><code>weight_max_vel_y</code></td><td>double</td><td class="n"><code>2</code></td><td class="n">0 … 1000</td><td>Azami yana kayma hızına uyma ağırlığı (yalnızca holonomik robotlar).</td></tr>
+<tr id="teb-weight_max_vel_theta"><td><code>weight_max_vel_theta</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 1000</td><td>Azami dönüş hızı sınırına uyma ağırlığı.</td></tr>
+<tr id="teb-weight_acc_lim_x"><td><code>weight_acc_lim_x</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 1000</td><td>Azami öteleme ivmesi sınırına uyma ağırlığı.</td></tr>
+<tr id="teb-weight_acc_lim_y"><td><code>weight_acc_lim_y</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 1000</td><td>Azami yana kayma ivmesine uyma ağırlığı (yalnızca holonomik robotlar).</td></tr>
+<tr id="teb-weight_acc_lim_theta"><td><code>weight_acc_lim_theta</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 1000</td><td>Azami dönüş ivmesi sınırına uyma ağırlığı.</td></tr>
+<tr id="teb-weight_kinematics_nh"><td><code>weight_kinematics_nh</code></td><td>double</td><td class="n"><code>1000</code></td><td class="n">0 … 10000</td><td>Holonomik olmayan kinematiğe (yana kayamama) uyma ağırlığı. Diferansiyel ve araba benzeri robotta yüksek tut (genelde 1000).</td></tr>
+<tr id="teb-weight_kinematics_forward_drive"><td><code>weight_kinematics_forward_drive</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 1000</td><td>Robotu yalnızca ileri yönü seçmeye zorlama ağırlığı (pozitif hızlar; yalnızca diferansiyel sürüş). Büyütürsen robot geri gitmekten kaçınır.</td></tr>
+<tr id="teb-weight_kinematics_turning_radius"><td><code>weight_kinematics_turning_radius</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 1000</td><td>En küçük dönüş yarıçapını zorlama ağırlığı (araba benzeri robotlar).</td></tr>
+<tr id="teb-weight_optimaltime"><td><code>weight_optimaltime</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 1000</td><td>Yörüngeyi geçiş süresi bakımından kısaltma ağırlığı. Büyütmek robotu daha hızlı ve atak yapar.</td></tr>
+<tr id="teb-weight_shortest_path"><td><code>weight_shortest_path</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … 100</td><td>Yörüngeyi yol uzunluğu bakımından kısaltma ağırlığı.</td></tr>
+<tr id="teb-weight_obstacle"><td><code>weight_obstacle</code></td><td>double</td><td class="n"><code>50</code></td><td class="n">0 … 1000</td><td>Engellerden en az mesafeyi koruma ağırlığı. Robot engellere fazla yaklaşıyorsa büyüt.</td></tr>
+<tr id="teb-weight_inflation"><td><code>weight_inflation</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … 10</td><td>Şişirme (inflation) cezasının ağırlığı; küçük olmalı.</td></tr>
+<tr id="teb-weight_dynamic_obstacle"><td><code>weight_dynamic_obstacle</code></td><td>double</td><td class="n"><code>50</code></td><td class="n">0 … 1000</td><td>Dinamik engellerden en az mesafeyi koruma ağırlığı.</td></tr>
+<tr id="teb-weight_dynamic_obstacle_inflation"><td><code>weight_dynamic_obstacle_inflation</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … 10</td><td>Dinamik engel şişirme cezasının ağırlığı; küçük olmalı.</td></tr>
+<tr id="teb-weight_viapoint"><td><code>weight_viapoint</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 1000</td><td>Via noktalarına uzaklığı azaltma ağırlığı.</td></tr>
+<tr id="teb-weight_prefer_rotdir"><td><code>weight_prefer_rotdir</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>50</code></td><td class="n">—</td><td>Belirli bir dönüş yönünü tercih etme ağırlığı; şu an yalnızca salınım algılandığında (<code>oscillation_recovery</code>) etkin.</td></tr>
+<tr id="teb-weight_adapt_factor"><td><code>weight_adapt_factor</code></td><td>double</td><td class="n"><code>2</code></td><td class="n">1 … 100</td><td>Bazı özel ağırlıklar (şu an <code>weight_obstacle</code>) her dış TEB iterasyonunda bu çarpanla büyütülür (yeni = eski × çarpan). Baştan çok büyük bir değer vermek yerine kademeli artırmak sayısal koşulları iyileştirir.</td></tr>
+<tr id="teb-obstacle_cost_exponent"><td><code>obstacle_cost_exponent</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0.01 … 100</td><td>Doğrusal olmayan engel maliyeti için üs; 1 ise doğrusal maliyet (varsayılan).</td></tr>
+</tbody></table></div>
+<h3>Homotopi sınıfı planlama</h3>
+<p>Birden çok alternatif yörüngeyi (bir engelin solundan ya da sağından geçmek gibi) aynı anda optimize edip en iyisini seçer. Tek yörüngeli planlamadan çok daha fazla işlemci ister.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-enable_homotopy_class_planning"><td><code>enable_homotopy_class_planning</code> <span class="tag2">yalnızca YAML</span></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Homotopi sınıfı planlamasını açar. Kapalıyken tek bir yörünge optimize edilir.</td></tr>
+<tr id="teb-enable_multithreading"><td><code>enable_multithreading</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Birden çok yörüngenin paralel planlanması için çoklu iş parçacığını açar.</td></tr>
+<tr id="teb-simple_exploration"><td><code>simple_exploration</code> <span class="tag2">yalnızca YAML</span></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise alternatif yörüngeler basit sol-sağ yaklaşımıyla (her engelin solundan ya da sağından geç) üretilir; false ise başlangıç ile hedef arasındaki bir bölgede rastgele yol haritası örneklenir.</td></tr>
+<tr id="teb-max_number_classes"><td><code>max_number_classes</code></td><td>int</td><td class="n"><code>5</code></td><td class="n">1 … 100</td><td>Kabul edilen en çok alternatif homotopi sınıfı sayısı (hesap yükünü sınırlar).</td></tr>
+<tr id="teb-selection_cost_hysteresis"><td><code>selection_cost_hysteresis</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 2</td><td>Yeni bir adayın seçilmiş yörüngenin yerini alması için maliyetinin ne kadar düşük olması gerektiği (seçim: yeni_maliyet &lt; eski_maliyet × çarpan). 1&#x27;in altındaki değer geçiş için gerçek bir iyileşme ister.</td></tr>
+<tr id="teb-selection_prefer_initial_plan"><td><code>selection_prefer_initial_plan</code></td><td>double</td><td class="n"><code>0.95</code></td><td class="n">0 … 1</td><td>Başlangıç planının eşdeğerlik sınıfındaki yörüngenin maliyetine (0, 1) aralığında bir azaltma çarpanı uygular; küçüldükçe bu sınıf tercih edilir.</td></tr>
+<tr id="teb-selection_obst_cost_scale"><td><code>selection_obst_cost_scale</code></td><td>double</td><td class="n"><code>2</code></td><td class="n">0 … 1000</td><td>En iyi adayı seçerken engel maliyetlerine uygulanan ek ölçek.</td></tr>
+<tr id="teb-selection_viapoint_cost_scale"><td><code>selection_viapoint_cost_scale</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0 … 100</td><td>En iyi adayı seçerken via noktası maliyetlerine uygulanan ek ölçek.</td></tr>
+<tr id="teb-selection_alternative_time_cost"><td><code>selection_alternative_time_cost</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>true ise zaman maliyeti yerine toplam geçiş süresi kullanılır.</td></tr>
+<tr id="teb-switching_blocking_period"><td><code>switching_blocking_period</code></td><td>double</td><td class="n"><code>0</code></td><td class="n">0 … 60</td><td>Yeni bir eşdeğerlik sınıfına geçişe izin verilmeden önce geçmesi gereken süre (sn). Yörünge sürekli değişiyorsa büyüt.</td></tr>
+<tr id="teb-roadmap_graph_no_samples"><td><code>roadmap_graph_no_samples</code></td><td>int</td><td class="n"><code>15</code></td><td class="n">1 … 100</td><td><code>simple_exploration</code> kapalıyken yol haritası grafiği için üretilecek örnek sayısı.</td></tr>
+<tr id="teb-roadmap_graph_area_width"><td><code>roadmap_graph_area_width</code></td><td>double</td><td class="n"><code>5</code></td><td class="n">0.1 … 20</td><td>Başlangıç ile hedef arasında örneklerin üretileceği dikdörtgen bölgenin genişliği (m); yüksekliği başlangıç-hedef mesafesine eşittir.</td></tr>
+<tr id="teb-roadmap_graph_area_length_scale"><td><code>roadmap_graph_area_length_scale</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0.5 … 2</td><td>Bölgenin uzunluğu başlangıç-hedef mesafesinden belirlenir; bu parametre mesafeyi (geometrik merkez sabit kalacak şekilde) ölçekler.</td></tr>
+<tr id="teb-h_signature_prescaler"><td><code>h_signature_prescaler</code></td><td>double</td><td class="n"><code>1</code></td><td class="n">0.2 … 1</td><td>Çok sayıda engele izin vermek için engel değerlerini ölçekler. Çok küçük seçme; engeller birbirinden ayırt edilemez (0,2 &lt; H ≤ 1).</td></tr>
+<tr id="teb-h_signature_threshold"><td><code>h_signature_threshold</code></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">0 … 1</td><td>İki h-imzası, gerçek ve sanal kısımlarının farkı bu eşiğin altındaysa eşit sayılır.</td></tr>
+<tr id="teb-obstacle_keypoint_offset"><td><code>obstacle_keypoint_offset</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td><code>simple_exploration</code> açıkken engelin sol ve sağında (<code>min_obstacle_dist</code>&#x27;e ek olarak) yeni anahtar nokta oluşturulacak mesafe (m).</td></tr>
+<tr id="teb-obstacle_heading_threshold"><td><code>obstacle_heading_threshold</code></td><td>double</td><td class="n"><code>0.45</code></td><td class="n">0 … 1</td><td>Engel yönü ile hedef yönü arasındaki normalize skaler çarpımın, engellerin keşifte dikkate alınması için eşiği [0, 1].</td></tr>
+<tr id="teb-viapoints_all_candidates"><td><code>viapoints_all_candidates</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>true ise farklı topolojideki tüm yörüngeler via noktalarına bağlanır; false ise yalnızca başlangıç/global planla aynı topolojide olan.</td></tr>
+<tr id="teb-visualize_hc_graph"><td><code>visualize_hc_graph</code></td><td>bool</td><td class="n"><code>false</code></td><td class="n">—</td><td>Yeni homotopi sınıflarını keşfetmek için oluşturulan grafiği görselleştirir.</td></tr>
+<tr id="teb-delete_detours_backwards"><td><code>delete_detours_backwards</code> <span class="tag2">yalnızca YAML</span></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Açıksa, en iyi plana göre geriye doğru dolambaç yapan planlar atılır.</td></tr>
+<tr id="teb-detours_orientation_tolerance"><td><code>detours_orientation_tolerance</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>1.5708</code></td><td class="n">—</td><td>Bir planın başlangıç yönü en iyi plandan bu değerden (rad) fazla farklıysa dolambaç sayılır.</td></tr>
+<tr id="teb-length_start_orientation_vector"><td><code>length_start_orientation_vector</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>0.4</code></td><td class="n">—</td><td>Bir planın başlangıç yönünü hesaplamakta kullanılan vektörün uzunluğu (m).</td></tr>
+<tr id="teb-max_ratio_detours_duration_best_duration"><td><code>max_ratio_detours_duration_best_duration</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>3</code></td><td class="n">—</td><td>Bir planın süresinin en iyi planın süresine oranı bunu aşarsa dolambaç sayılıp atılır.</td></tr>
+</tbody></table></div>
+<h3>Kurtarma</h3>
+<p>Planlayıcı sıkıştığında ya da salındığında devreye giren önlemler.</p>
+<div class="tw ptab"><table><thead><tr><th>Parametre</th><th>Tür</th><th class="n">Varsayılan</th><th class="n">Aralık</th><th>Açıklama</th></tr></thead><tbody>
+<tr id="teb-shrink_horizon_backup"><td><code>shrink_horizon_backup</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Otomatik algılanan sorunlarda planlayıcının ufku geçici olarak küçültmesine (%50) izin verir.</td></tr>
+<tr id="teb-shrink_horizon_min_duration"><td><code>shrink_horizon_min_duration</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>10</code></td><td class="n">—</td><td>Uygulanamaz yörünge algılandığında küçültülmüş ufkun en az ne kadar (sn) korunacağı.</td></tr>
+<tr id="teb-oscillation_recovery"><td><code>oscillation_recovery</code></td><td>bool</td><td class="n"><code>true</code></td><td class="n">—</td><td>Aynı eşdeğerlik sınıfındaki çözümler arasında (sol/sağ/ileri/geri) sık gidip gelmeyi algılayıp çözmeye çalışır.</td></tr>
+<tr id="teb-oscillation_v_eps"><td><code>oscillation_v_eps</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Ortalama normalize doğrusal hız için eşik: bu ve <code>oscillation_omega_eps</code> birlikte aşılmazsa olası bir salınım algılanır.</td></tr>
+<tr id="teb-oscillation_omega_eps"><td><code>oscillation_omega_eps</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>0.1</code></td><td class="n">—</td><td>Ortalama normalize açısal hız için eşik: bu ve <code>oscillation_v_eps</code> birlikte aşılmazsa olası bir salınım algılanır.</td></tr>
+<tr id="teb-oscillation_recovery_min_duration"><td><code>oscillation_recovery_min_duration</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>10</code></td><td class="n">—</td><td>Salınım algılandıktan sonra kurtarma kipinin en az kaç sn açık kalacağı.</td></tr>
+<tr id="teb-oscillation_filter_duration"><td><code>oscillation_filter_duration</code> <span class="tag2">yalnızca YAML</span></td><td>double</td><td class="n"><code>10</code></td><td class="n">—</td><td>Salınım algılaması için filtre uzunluğu/süresi (sn).</td></tr>
+</tbody></table></div>
+
+<h3>Sık görülen durumlar için başlangıç noktaları</h3>
+<p>Bunlar kesin kurallar değil, denemeye başlanacak yerlerdir. Her seferinde <strong>tek parametre</strong> değiştir; ağırlıkları çok büyütmek optimizasyonu kararsızlaştırabilir.</p>
+<div class="tw"><table><thead><tr><th>Belirti</th><th>Önce bunlara bak</th></tr></thead><tbody>
+<tr><td>Engellere fazla yaklaşıyor</td><td><code>min_obstacle_dist</code> ↑, <code>weight_obstacle</code> ↑, <code>inflation_dist</code> ↑; <code>footprint_model</code> gerçek şekle uyuyor mu?</td></tr>
+<tr><td>Dar geçitten geçmiyor</td><td><code>min_obstacle_dist</code> ↓; costmap'te <code>inflation_radius</code> ↓</td></tr>
+<tr><td>Yerinde dönmüyor, geniş kavis çiziyor</td><td><code>min_turning_radius: 0</code> (diferansiyel sürüşte), <code>weight_kinematics_turning_radius</code></td></tr>
+<tr><td>Sürekli geri geri gidiyor</td><td><code>weight_kinematics_forward_drive</code> ↑, <code>max_vel_x_backwards</code> ↓, <code>allow_init_with_backwards_motion: false</code></td></tr>
+<tr><td>Yavaş ve tereddütlü</td><td><code>max_vel_x</code> ↑, <code>acc_lim_x</code> ↑, <code>weight_optimaltime</code> ↑</td></tr>
+<tr><td>Yörünge sürekli sağ-sol değişiyor</td><td><code>selection_cost_hysteresis</code> ↓, <code>switching_blocking_period</code> ↑, <code>oscillation_recovery: true</code></td></tr>
+<tr><td>Hedefte oyalanıyor</td><td><code>xy_goal_tolerance</code> ↑, <code>yaw_goal_tolerance</code> ↑, <code>free_goal_vel</code></td></tr>
+<tr><td>"Trajectory not feasible" uyarıları</td><td><code>feasibility_check_no_poses</code>, <code>min_obstacle_dist</code>; costmap footprint'i ile TEB <code>footprint_model</code>'in tutarlılığı</td></tr>
+<tr><td>İşlemci yükü yüksek</td><td><code>enable_homotopy_class_planning: false</code>, <code>no_inner_iterations</code> ve <code>no_outer_iterations</code> ↓, <code>max_samples</code> ↓, <code>dt_ref</code> ↑</td></tr>
+<tr><td>Robot geç tepki veriyor</td><td><code>dt_ref</code> ↓ (kontrol periyodu ile uyumlu), <code>controller_frequency</code> ↑ (move_base)</td></tr>
+</tbody></table></div>
+<p>Kavramsal karşılaştırma (DWA mı, TEB mi?) ve genel navigasyon ayar sırası için <a href="harita-ve-navigasyon.html#navigasyon">Harita ve navigasyon</a> sayfasına dön.</p>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="ref-costmap.html"><small>← Önceki</small>costmap_2d</a><a class="next" href="ref-slam-harita.html"><small>Sonraki →</small>gmapping ve map_server</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

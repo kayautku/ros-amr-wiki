@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Durum makinesi (SMACH) · ROS AMR Wiki</title>
+<meta name="description" content="Görev mantığı büyüdükçe iç içe if&#x27;ler ve bayraklar okunmaz hale gelir: &quot;şu noktaya git, olmazsa üç kez dene, pil azalırsa her şeyi bırak ve şarja git&quot;. Durum makinesi bu ">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg cur"><a href="smach.html" aria-current="page">Durum makinesi (SMACH)</a><ul class="sub"><li><a href="#smach">SMACH&#x27;a giriş</a></li><li><a href="#smach-durum">Durum yazmak</a></li><li><a href="#smach-makine">StateMachine: durumları bağlamak</a></li><li><a href="#smach-userdata">userdata: durumlar arası veri</a></li><li><a href="#smach-ros">smach_ros: ROS&#x27;a bağlanan hazır durumlar</a></li><li><a href="#smach-kapsayici">Kapsayıcılar: iç içe, paralel, sıralı</a></li><li><a href="#smach-izleme">İzleme, kapatma ve action olarak sunma</a></li><li><a href="#smach-ornek">Tam örnek: pil izlemeli devriye</a></li><li><a href="#smach-hatalar">Sık karşılaşılan SMACH hataları</a></li></ul></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">B · AMR yığını</p><h1>Durum makinesi (SMACH)</h1></header>
+<section id="smach">
+<h2>SMACH'a giriş</h2>
+<dl class="pkg">
+<div><dt>Paketler</dt><dd><code>smach</code>, <code>smach_ros</code>, <code>smach_msgs</code> (<code>desktop-full</code> ile gelir) · <code>smach_viewer</code> (ayrı kurulur)</dd></div>
+<div><dt>Dil</dt><dd>Yalnızca Python</dd></div>
+<div><dt>Doğrulandığı sürüm</dt><dd><code>smach</code>/<code>smach_ros</code> 2.5.3 (Noetic). Bu sayfadaki davranışlar kurulu kaynak koddan okunmuş ve tam örnek sahte bir <code>move_base</code>'e karşı çalıştırılarak denenmiştir.</dd></div>
+</dl>
+<p>Görev mantığı büyüdükçe iç içe <code>if</code>'ler ve bayraklar okunmaz hale gelir: "şu noktaya git, olmazsa üç kez dene, pil azalırsa her şeyi bırak ve şarja git". <strong>Durum makinesi</strong> bu akışı adlandırılmış <em>durumlar</em> ve aralarındaki <em>geçişler</em> olarak yazdırır. Robotun o anda ne yaptığı her zaman tek bir adla söylenebilir ("GOTO", "RETRY", "GO_CHARGE") ve her hata durumunun nereye gittiği tabloda açıkça görünür.</p>
+<p><strong>SMACH</strong> (<em>State MACHine</em>), ROS 1'in klasik Python durum makinesi kütüphanesidir. Çekirdek <code>smach</code> paketi ROS'tan bağımsızdır (roscore olmadan da çalışır). <code>smach_ros</code> ise action, servis ve topic'leri hazır durumlar olarak sunar ve makineyi dışarıdan izlemeyi sağlar.</p>
+
+<h3>Temel kavramlar</h3>
+<div class="tw"><table><thead><tr><th>Kavram</th><th>SMACH'taki karşılığı</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td>Durum</td><td><code>smach.State</code></td><td>Bir iş birimi. <code>execute()</code> çalışır ve bittiğinde bir <em>sonuç</em> döndürür.</td></tr>
+<tr><td>Sonuç (outcome)</td><td>Dizgi, ör. <code>"succeeded"</code></td><td>Durumun nasıl bittiği. Her durum olası sonuçlarını baştan bildirir.</td></tr>
+<tr><td>Geçiş (transition)</td><td><code>transitions={"succeeded": "DOCK"}</code></td><td>Hangi sonuçta hangi duruma gidileceği.</td></tr>
+<tr><td>Kapsayıcı (container)</td><td><code>StateMachine</code>, <code>Concurrence</code>, <code>Sequence</code>, <code>Iterator</code></td><td>Durumları içeren yapı. Kendisi de bir durumdur: iç içe konabilir ve kendi sonuçları vardır.</td></tr>
+<tr><td>Kullanıcı verisi</td><td><code>userdata</code></td><td>Durumlar arasında veri taşıyan sözlük benzeri yapı.</td></tr>
+<tr><td>İptal (preempt)</td><td><code>request_preempt()</code></td><td>Çalışan duruma "dur" isteği. <strong>Gönüllüdür</strong>: durum bu isteği kendisi denetleyip uymalıdır.</td></tr>
+</tbody></table></div>
+
+<h3>Ne zaman SMACH, ne zaman başka bir şey?</h3>
+<ul class="b">
+<li><strong>SMACH uygundur:</strong> akış belirgin adımlardan oluşuyorsa (git → yanaş → bekle → geri çık), adımlar arasında net hata yolları varsa ve robot aynı anda tek bir "iş" yapıyorsa.</li>
+<li><strong>Davranış ağacı daha uygundur:</strong> çok sayıda öncelikli ve sürekli yeniden değerlendirilen koşul varsa ("engel varsa dur, pil azsa şarja git, yoksa göreve devam et"). ROS 1'de <code>py_trees_ros</code> ya da BehaviorTree.CPP kullanılır. ROS 2'nin Nav2 yığını doğrudan BehaviorTree.CPP üzerine kuruludur.</li>
+<li><strong>SMACH gerçek zamanlı değildir.</strong> Motor kontrolü ya da hızlı geri besleme döngüsü için değil, saniyeler mertebesindeki görev kararları içindir.</li>
+</ul>
+</section>
+
+<section id="smach-durum">
+<h2>Durum yazmak</h2>
+<p>Bir durum, <code>smach.State</code>'ten türetilen bir sınıftır. Kurucuda olası sonuçlar (ve kullandığı <a href="#smach-userdata">userdata</a> anahtarları) bildirilir; iş <code>execute(self, ud)</code> içinde yapılır ve bu yöntem bildirilen sonuçlardan birini döndürür.</p>
+<pre><code>import rospy
+import smach
+from std_msgs.msg import Empty
+
+class WaitForOperator(smach.State):
+    def __init__(self, timeout=30.0):
+        smach.State.__init__(self, outcomes=["confirmed", "timeout", "preempted"])
+        self.timeout = timeout
+        self.confirmed = False
+        rospy.Subscriber("operator_ok", Empty, self.cb)
+
+    def cb(self, msg):
+        self.confirmed = True
+
+    def execute(self, ud):
+        self.confirmed = False
+        end = rospy.Time.now() + rospy.Duration(self.timeout)
+        rate = rospy.Rate(10)
+        while rospy.Time.now() &lt; end:
+            if self.preempt_requested():      # iptal isteğine uy
+                self.service_preempt()
+                return "preempted"
+            if self.confirmed:
+                return "confirmed"
+            rate.sleep()
+        return "timeout"</code></pre>
+
+<h3>Kurallar</h3>
+<ul class="b">
+<li><strong>Yalnızca bildirilen sonuçlar döndürülebilir.</strong> Listede olmayan bir dizgi döndürmek <code>InvalidTransitionError</code> fırlatır ve makineyi durdurur. <code>None</code> döndürmek (ör. <code>return</code>'ü unutmak) da aynı hataya yol açar.</li>
+<li><strong>Uzun süren durum iptali denetlemelidir.</strong> SMACH bir durumu zorla durduramaz. <code>request_preempt()</code> yalnızca bir bayrak kaldırır; döngü içinde <code>preempt_requested()</code>'i denetleyip <code>service_preempt()</code> çağırarak <code>"preempted"</code> döndürmek durumun kendi işidir. Bunu yapmayan bir durum, bitene kadar iptali geciktirir. <a href="#smach-kapsayici">Concurrence</a> içinde ise tüm makineyi kilitleyebilir.</li>
+<li><strong>Kısa durumlar da en başta denetleyebilir.</strong> İptal isteği bir durum çalışırken değil de iki durum <em>arasında</em> gelirse, SMACH onu bir sonraki duruma iletir. O durum da iptali yok sayarsa akış, iptali dinleyen ilk duruma kadar devam eder. <code>smach_ros</code>'un hazır durumları (<code>SimpleActionState</code>, <code>ServiceState</code>, <code>MonitorState</code>) başlarken iptali zaten denetler.</li>
+<li><strong>Kurucuda ağır iş yapma.</strong> Kurucu, makine kurulurken bir kez çalışır. Abonelikler ve istemciler orada oluşturulabilir, ama <code>rospy.init_node()</code>'dan <em>sonra</em> çağrılmalıdır.</li>
+</ul>
+
+<h3>Kısa durumlar için: <code>CBState</code></h3>
+<p>Birkaç satırlık bir iş için sınıf yazmak yerine bir fonksiyonu <code>smach.CBState</code> ile duruma çevirebilirsin. Sonuçlar ve anahtarlar <code>@smach.cb_interface</code> ile fonksiyonun üzerine yazılır:</p>
+<pre><code>@smach.cb_interface(outcomes=["next"], input_keys=["index"], output_keys=["index", "tries"])
+def advance(ud):
+    ud.index += 1
+    ud.tries = 0
+    return "next"
+
+smach.StateMachine.add("ADVANCE", smach.CBState(advance), transitions={"next": "NEXT"})</code></pre>
+<div class="call warn"><b><code>cb_interface</code>'te <code>io_keys</code> yoktur</b>
+<p><code>smach.State</code> kurucusu <code>io_keys</code> (hem okunan hem yazılan anahtar) kabul eder, ama <code>cb_interface</code> yalnızca <code>outcomes</code>, <code>input_keys</code> ve <code>output_keys</code> alır. <code>io_keys=</code> yazmak <code>TypeError</code> verir. Aynı anahtarı hem <code>input_keys</code>'e hem <code>output_keys</code>'e yaz.</p></div>
+</section>
+
+<section id="smach-makine">
+<h2>StateMachine: durumları bağlamak</h2>
+<p><code>smach.StateMachine</code>, durumları geçiş tablosuyla bağlayan temel kapsayıcıdır. Kurarken makinenin kendi sonuçları verilir; durumlar <code>with</code> bloğu içinde <code>StateMachine.add(etiket, durum, transitions=...)</code> ile eklenir. Aşağıdaki örnek yalnızca <code>smach</code> kullanır; roscore gerekmez, <code>python3 dosya.py</code> ile doğrudan çalışır:</p>
+<pre><code>import smach
+
+class Count(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=["again", "enough"], io_keys=["n"])
+
+    def execute(self, ud):
+        ud.n += 1
+        print("n =", ud.n)
+        return "again" if ud.n &lt; 3 else "enough"
+
+class Report(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=["done"], input_keys=["n"])
+
+    def execute(self, ud):
+        print("bitti, n =", ud.n)
+        return "done"
+
+sm = smach.StateMachine(outcomes=["finished"])
+sm.userdata.n = 0
+with sm:
+    smach.StateMachine.add("COUNT", Count(),
+                           transitions={"again": "COUNT", "enough": "REPORT"})
+    smach.StateMachine.add("REPORT", Report(),
+                           transitions={"done": "finished"})
+
+outcome = sm.execute()
+print("sonuç:", outcome)        # sonuç: finished</code></pre>
+<p>Çıktıda <code>n = 1</code>, <code>n = 2</code> ve <code>n = 3</code> satırlarının arasında SMACH'ın kendi <code>[ INFO ]</code> ve <code>[ DEBUG ]</code> satırları da görünür. <code>smach_ros</code> içe aktarılmadığında SMACH logları doğrudan ekrana yazar; <code>smach_ros</code> ile ise <code>rospy</code> loglarına yönlendirilir.</p>
+
+<h3>Geçişler nasıl çözülür</h3>
+<div class="tw"><table><thead><tr><th>Durum</th><th>Ne olur</th></tr></thead><tbody>
+<tr><td>Hedef bir durum etiketi</td><td>O duruma geçilir.</td></tr>
+<tr><td>Hedef, makinenin kendi sonuçlarından biri</td><td>Makine bu sonuçla biter; <code>execute()</code> bu dizgiyi döndürür (iç içe makinede üst makinenin geçiş tablosuna gider).</td></tr>
+<tr><td>Bir sonuç tabloda <strong>hiç yok</strong>, ama makinenin aynı adlı bir sonucu var</td><td>Örtük olarak o sonuçla biter. Örn. durumun <code>"preempted"</code> sonucu yazılmamışsa ve makinenin de <code>"preempted"</code> sonucu varsa makine <code>"preempted"</code> ile biter.</td></tr>
+<tr><td>Bir sonuç tabloda yok ve makinenin öyle bir sonucu da yok</td><td>Tutarlılık denetimi başarısız olur (aşağıdaki uyarı).</td></tr>
+</tbody></table></div>
+<div class="call warn"><b>Tutarlılık hatası istisna fırlatmaz, <code>None</code> döndürür</b>
+<p><code>execute()</code> başlarken makine denetlenir: başlangıç durumu var mı, her hedef bir durum ya da makine sonucu mu, bağlanmamış her sonuç makinenin bir sonucuyla eşleşiyor mu. Denetim başarısızsa SMACH yalnızca <code>Container consistency check failed.</code> diye hata loglar ve <code>execute()</code> <strong><code>None</code></strong> döndürür; hiçbir durum çalışmaz. Dönüş değerini her zaman kontrol et ve logdaki <code>InvalidTransitionError</code> satırına bak: hangi durumun hangi sonucunun eksik olduğunu orada yazar.</p></div>
+
+<h3>Başlangıç durumu</h3>
+<p>İlk eklenen durum başlangıç durumudur. Değiştirmek için makine kurulduktan sonra <code>sm.set_initial_state(["REPORT"])</code> çağır (liste alır; <code>StateMachine</code> yalnızca ilk elemanı kullanır). <code>add_auto(etiket, durum, connector_outcomes=[...])</code> ise verilen sonuçları otomatik olarak <em>bir sonra eklenen</em> duruma bağlar; düz sıralı akışlarda geçiş yazmayı kısaltır.</p>
+</section>
+
+<section id="smach-userdata">
+<h2>userdata: durumlar arası veri</h2>
+<p>Her kapsayıcının bir <code>userdata</code>'sı vardır. Durumlar bu veriye <strong>yalnızca bildirdikleri anahtarlar üzerinden</strong> erişir:</p>
+<div class="tw"><table><thead><tr><th>Bildirim</th><th>Okuma</th><th>Yazma</th></tr></thead><tbody>
+<tr><td><code>input_keys</code></td><td>Evet</td><td>Hayır</td></tr>
+<tr><td><code>output_keys</code></td><td><strong>Hayır</strong></td><td>Evet</td></tr>
+<tr><td><code>io_keys</code> (yalnızca <code>State</code>) ya da iki listede birden</td><td>Evet</td><td>Evet</td></tr>
+</tbody></table></div>
+<p>Başlangıç değerleri makine üzerinden verilir: <code>sm.userdata.index = 0</code>. Durum içinde <code>ud.index</code> ya da <code>ud["index"]</code> ile erişilir.</p>
+
+<h3>Kurallar ve sessiz hatalar</h3>
+<ul class="b">
+<li><strong>Bildirilmemiş anahtarı okumak</strong> <code>InvalidUserCodeError</code> fırlatır. Hata mesajı hangi anahtarların bildirildiğini söyler.</li>
+<li><strong>Yalnızca <code>output_keys</code>'te olan anahtar geri okunamaz.</strong> <code>ud.target = x</code> yazıp sonraki satırda <code>ud.target</code>'ı okumak aynı hatayı verir. Değeri önce yerel bir değişkende tut.</li>
+<li><strong>Bildirilmemiş anahtara yazmak hata fırlatmaz.</strong> SMACH yalnızca <code>Writing to SMACH userdata key ...</code> diye hata loglar ve değer <strong>kaybolur</strong>. Sonraki durum eski değeri görür. En sinsi SMACH hatası budur; logda bu satırı ara.</li>
+<li><strong>Yalnızca <code>input_keys</code>'teki bir değeri yeniden atamak</strong> da aynı şekilde loglanıp yok sayılır. Ama bir listeyi ya da sözlüğü <em>yerinde</em> değiştirmek (<code>ud.items.append(...)</code>) engellenmez. Buna güvenme; değiştireceğin anahtarı <code>output_keys</code>'e de yaz.</li>
+</ul>
+
+<h3>Yeniden adlandırma (remapping)</h3>
+<p>Bir durum kendi içinde genel bir ad kullanabilir (ör. <code>target</code>). Makineye eklerken <code>remapping</code> ile bu adın makinedeki hangi anahtara karşılık geldiği söylenir. Böylece aynı durum sınıfı farklı verilerle yeniden kullanılır:</p>
+<pre><code>with sm:
+    smach.StateMachine.add("GOTO_PICK", GoTo(),
+                           transitions={"succeeded": "GOTO_DROP"},
+                           remapping={"target": "pick_pose"})
+    smach.StateMachine.add("GOTO_DROP", GoTo(),
+                           transitions={"succeeded": "done"},
+                           remapping={"target": "drop_pose"})</code></pre>
+
+<h3>İç içe kapsayıcılarda veri</h3>
+<p>Bir kapsayıcı başka bir kapsayıcının içine konduğunda, üst makinenin <code>userdata</code>'sını <strong>otomatik görmez</strong>. İç makine, üstten almak istediği anahtarları <code>input_keys</code>, üste geri vermek istediklerini <code>output_keys</code> olarak kendi kurucusunda bildirmelidir:</p>
+<pre><code>inner = smach.StateMachine(outcomes=["done"], input_keys=["goal_pose"], output_keys=["result"])</code></pre>
+<p>Bildirilmezse iç makinedeki durum anahtarı okuduğunda <code>Userdata key 'goal_pose' not available</code> hatası alınır. İç makinenin kendi yerel verisi (<code>inner.userdata.x = ...</code> ile verilen) ise çalıştırmalar arasında korunur.</p>
+</section>
+
+<section id="smach-ros">
+<h2>smach_ros: ROS'a bağlanan hazır durumlar</h2>
+<div class="call warn"><b>Önce <code>rospy.init_node()</code></b>
+<p><code>SimpleActionState</code> kurulurken hemen bir action istemcisi oluşturur ve sunucuyu arka planda beklemeye başlar. <code>MonitorState</code> ve kendi durumlarındaki abonelikler de düğüme ihtiyaç duyar. Bu yüzden <code>rospy.init_node()</code>, makine kurulmadan <strong>önce</strong> çağrılmalıdır.</p></div>
+
+<h3><code>SimpleActionState</code>: action'ı durum olarak çalıştırmak</h3>
+<p>Bir action'a (en sık <code>move_base</code>) hedef gönderir, bitmesini bekler ve sonucu duruma çevirir. Sonuçları her zaman <code>succeeded</code>, <code>aborted</code> ve <code>preempted</code>'dır.</p>
+<pre><code>from move_base_msgs.msg import MoveBaseAction
+
+# 1) Sabit hedef: kurulurken bilinir
+smach_ros.SimpleActionState("move_base", MoveBaseAction, goal=make_goal(0.0, 0.0, 3.14))
+
+# 2) Hedef çalışma anında userdata'dan üretilir
+@smach.cb_interface(input_keys=["target"])
+def goal_cb(ud, goal):
+    name, x, y, yaw = ud.target
+    return make_goal(x, y, yaw)          # yeni goal döndür (None dönerse eskisi kalır)
+
+smach_ros.SimpleActionState("move_base", MoveBaseAction, goal_cb=goal_cb,
+                            exec_timeout=rospy.Duration(120.0))</code></pre>
+<p>(<code>make_goal</code>, <a href="gorev-ve-docking.html#gorev">Görev katmanı</a> sayfasındaki yardımcı fonksiyondur.)</p>
+
+<h4>Hedefi ve sonucu vermenin yolları</h4>
+<div class="tw"><table><thead><tr><th>Parametre</th><th>Ne yapar</th></tr></thead><tbody>
+<tr><td><code>goal</code></td><td>Sabit hedef mesajı.</td></tr>
+<tr><td><code>goal_key</code></td><td>Hedef mesajının tamamını bu userdata anahtarından alır.</td></tr>
+<tr><td><code>goal_slots</code></td><td>Hedef mesajının alanlarını aynı adlı userdata anahtarlarından doldurur (ör. <code>["target_pose"]</code>).</td></tr>
+<tr><td><code>goal_cb(ud, goal)</code></td><td>Hedefi çalışma anında üretir; yukarıdakilerden sonra çağrılır. Okuduğu anahtarlar <code>@smach.cb_interface(input_keys=...)</code> ile bildirilir.</td></tr>
+<tr><td><code>result_key</code> / <code>result_slots</code></td><td>Sonuç mesajını (ya da alanlarını) userdata'ya yazar.</td></tr>
+<tr><td><code>result_cb(ud, status, result)</code></td><td>Sonucu işler. Bir sonuç dizgisi döndürürse durumun sonucu o olur; <code>None</code> döndürürse aşağıdaki varsayılan eşleme geçerlidir. Ek sonuçlar <code>cb_interface(outcomes=[...])</code> ile bildirilir.</td></tr>
+</tbody></table></div>
+
+<h4>Action durumunun sonuca çevrilmesi</h4>
+<div class="tw"><table><thead><tr><th>Action durumu</th><th>Durumun sonucu</th></tr></thead><tbody>
+<tr><td><code>SUCCEEDED</code></td><td><code>succeeded</code></td></tr>
+<tr><td><code>PREEMPTED</code> ve iptali <em>bu durum</em> istemişse</td><td><code>preempted</code></td></tr>
+<tr><td>Diğer her şey: <code>ABORTED</code>, <code>REJECTED</code>, başkasının iptal etmesi, <code>exec_timeout</code> dolması</td><td><code>aborted</code></td></tr>
+</tbody></table></div>
+
+<h4>Zaman aşımları</h4>
+<div class="tw"><table><thead><tr><th>Parametre</th><th>Varsayılan</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td><code>exec_timeout</code></td><td><code>None</code> (sınırsız)</td><td>Hedef bu süreden uzun sürerse iptal edilir ve durum <code>aborted</code> ile biter. <code>move_base</code> için mutlaka ver: yol kapalıyken robot saatlerce toparlanma davranışlarında dolaşabilir.</td></tr>
+<tr><td><code>server_wait_timeout</code></td><td>60 s</td><td>Action sunucusu için bekleme süresi. Bekleme <em>kurucuda</em>, arka planda başlar. Durum çalıştığında sunucu hâlâ yoksa bekleme bir kez daha yapılır; yine gelmezse <code>aborted</code>.</td></tr>
+<tr><td><code>preempt_timeout</code></td><td>60 s</td><td>İptal gönderildikten sonra sunucudan sonuç bekleme süresi.</td></tr>
+</tbody></table></div>
+
+<h3><code>ServiceState</code>: servis çağırmak</h3>
+<p>Bir servisi çağırır; sonuçları yine <code>succeeded</code>, <code>aborted</code> ve <code>preempted</code>'dır. İstek <code>request</code>, <code>request_key</code>, <code>request_slots</code> ya da <code>request_cb</code> ile; yanıt <code>response_key</code>, <code>response_slots</code> ya da <code>response_cb</code> ile işlenir. Servis henüz yoksa, iptal edilene kadar saniyede bir uyarı yazarak <strong>süresiz</strong> bekler.</p>
+<pre><code>from std_srvs.srv import Empty, EmptyRequest
+
+# Yeniden denemeden önce costmap'lerdeki eski engelleri temizle
+smach.StateMachine.add("CLEAR",
+    smach_ros.ServiceState("move_base/clear_costmaps", Empty, request=EmptyRequest()),
+    transitions={"succeeded": "GOTO", "aborted": "GOTO"})</code></pre>
+
+<h3><code>MonitorState</code>: bir topic'i izlemek</h3>
+<p>Bir topic'e abone olur ve gelen her mesaj için <code>cond_cb(ud, msg)</code>'yi çağırır. Sonuçları <code>valid</code>, <code>invalid</code> ve <code>preempted</code>'dır.</p>
+<div class="call warn"><b>Mantık ters gibi görünür</b>
+<p><code>cond_cb</code> <code>True</code> döndürdükçe izleme <strong>sürer</strong>. İlk <code>False</code>'ta durum <code>invalid</code> ile biter. <code>max_checks</code> (varsayılan <code>-1</code>, yani sınırsız) pozitif verilirse o kadar <code>True</code>'dan sonra <code>valid</code> ile biter. <code>cond_cb</code> içinde istisna olursa sonuç <code>invalid</code> olur. Yani "pil iyi mi?" diye sor: iyiyse <code>True</code>. Pil düştüğü an durum <code>invalid</code> olur ve bu, "bir şey değişti" sinyalidir.</p></div>
+<pre><code>from sensor_msgs.msg import BatteryState
+
+def battery_ok(ud, msg):
+    return msg.percentage &gt; 0.2          # 0..1 arası; False olunca 'invalid'
+
+smach_ros.MonitorState("battery_state", BatteryState, battery_ok)</code></pre>
+<p><code>MonitorState</code> tek başına kullanılınca makine, koşul bozulana kadar o durumda bekler. Asıl gücü, bir <a href="#smach-kapsayici">Concurrence</a> içinde başka bir işle <strong>paralel</strong> çalıştırılmasından gelir.</p>
+</section>
+
+<section id="smach-kapsayici">
+<h2>Kapsayıcılar: iç içe, paralel, sıralı</h2>
+
+<h3>İç içe makine</h3>
+<p>Bir <code>StateMachine</code> başka bir makineye sıradan bir durum gibi eklenir. İç makinenin <em>sonuçları</em>, üst makinedeki geçişlerin anahtarlarıdır. Karmaşık görevi okunabilir parçalara böler: üstte "DEVRİYE → ŞARJ" gibi birkaç büyük adım, her adımın ayrıntısı kendi makinesinde.</p>
+<pre><code>patrol = build_patrol(waypoints)             # outcomes=["finished", "preempted"]
+with top:
+    smach.StateMachine.add("PATROL", patrol,
+                           transitions={"finished": "GO_HOME", "preempted": "preempted"})</code></pre>
+<p>Üst makineden veri almak için iç makinenin <code>input_keys</code>/<code>output_keys</code> bildirmesi gerekir (<a href="#smach-userdata">userdata</a> bölümü).</p>
+
+<h3><code>Concurrence</code>: paralel çalıştırmak</h3>
+<p>İçindeki durumların hepsini <strong>aynı anda</strong> (ayrı thread'lerde) başlatır. Kapsayıcının sonucu, çocukların sonuçlarından hesaplanır:</p>
+<pre><code>run = smach.Concurrence(
+    outcomes=["finished", "low_battery", "preempted"],
+    default_outcome="preempted",
+    outcome_map={"finished":    {"PATROL": "finished"},
+                 "low_battery": {"BATTERY": "invalid"}},
+    child_termination_cb=lambda outcomes: True)   # biri bitince diğerlerini durdur
+with run:
+    smach.Concurrence.add("PATROL", build_patrol(waypoints))
+    smach.Concurrence.add("BATTERY", smach_ros.MonitorState("battery_state", BatteryState, battery_ok))</code></pre>
+<div class="tw"><table><thead><tr><th>Parametre</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td><code>outcome_map</code></td><td><code>{kapsayıcı_sonucu: {çocuk: çocuk_sonucu, ...}}</code>. Bir kapsayıcı sonucu, listelenen <strong>tüm</strong> çocuklar belirtilen sonuçla bittiyse seçilir; listelenmeyen çocuklar önemsizdir. Birden çok eşleşme varsa daha çok koşul içeren kazanır (eşitlikte davranış tanımsız).</td></tr>
+<tr><td><code>default_outcome</code></td><td>Hiçbir eşleşme yoksa kullanılır. Zorunludur ve <code>outcomes</code> içinde olmalıdır.</td></tr>
+<tr><td><code>child_termination_cb(outcomes)</code></td><td>Her çocuk bittiğinde çağrılır; bitmemişlerin değeri <code>None</code>'dır. <code>True</code> dönerse kalan tüm çocuklara iptal gönderilir, bir etiket listesi dönerse yalnızca onlara, <code>False</code> dönerse beklemeye devam edilir. <strong>Verilmezse kapsayıcı tüm çocukların kendiliğinden bitmesini bekler.</strong></td></tr>
+<tr><td><code>outcome_cb(outcomes)</code></td><td>Tüm çocuklar bitince çağrılır; bir sonuç dizgisi döndürürse <code>outcome_map</code>'in önüne geçer.</td></tr>
+</tbody></table></div>
+<div class="call warn"><b>İptale uymayan çocuk Concurrence'ı kilitler</b>
+<p>Bir çocuk bittiğinde diğerlerine iptal gönderilir, ama kapsayıcı <strong>hepsinin gerçekten bitmesini</strong> bekler. İçinde <code>preempt_requested()</code>'i denetlemeyen uzun bir döngü olan bir durum, Concurrence'ı o döngü bitene kadar (belki sonsuza dek) bekletir. Concurrence'a koyduğun her kendi durumun iptale uymalıdır.</p></div>
+
+<h3><code>Sequence</code> ve <code>Iterator</code></h3>
+<ul class="b">
+<li><strong><code>smach.Sequence(outcomes, connector_outcome)</code>:</strong> durumları eklendikleri sırayla çalıştırır. Her durumun <code>connector_outcome</code> sonucu otomatik olarak bir sonrakine bağlanır; yalnızca diğer sonuçlar için geçiş yazılır. "A, sonra B, sonra C; biri başarısızsa dur" akışları için kısadır.</li>
+<li><strong><code>smach.Iterator</code>:</strong> içindeki tek bir durumu bir listenin her elemanı için tekrar çalıştırır (eleman userdata'ya <code>it_label</code> adıyla konur). Waypoint listesi gibi durumlarda kullanılabilir. Ancak yeniden deneme ve atlama gibi mantıklar eklendikçe, <a href="#smach-ornek">tam örnekteki</a> gibi açık bir sayaçlı <code>StateMachine</code> genellikle daha okunur olur.</li>
+</ul>
+</section>
+
+<section id="smach-izleme">
+<h2>İzleme, kapatma ve action olarak sunma</h2>
+
+<h3>Makineyi canlı izlemek</h3>
+<p>Makinenin o anda hangi durumda olduğunu dışarıdan görmek için bir <code>IntrospectionServer</code> başlatılmalıdır. <strong>Başlatılmazsa <code>smach_viewer</code> hiçbir şey göstermez</strong>: viewer yalnızca bu sunucunun yayınladığı topic'leri dinler.</p>
+<pre><code>sis = smach_ros.IntrospectionServer("mission", top, "/MISSION")   # ad, kök makine, kök yolu
+sis.start()
+# ... top.execute() ...
+sis.stop()</code></pre>
+<p>Sunucu, düğümün isim alanına göre <code>/mission/smach/container_status</code>, <code>…/container_structure</code> ve <code>…/container_init</code> topic'lerini açar. İç içe her kapsayıcı için ayrı bir durum mesajı yayınlanır (<code>path: /MISSION/RUN/PATROL</code> gibi).</p>
+<div class="term"><div class="th"><span>Terminal</span><span>Görsel</span></div><pre>rosrun smach_viewer smach_viewer.py</pre></div>
+<div class="term"><div class="th"><span>Terminal</span><span>Viewer yoksa ya da çalışmıyorsa</span></div><pre>rostopic echo /mission/smach/container_status/active_states</pre></div>
+<p>Ayrıca SMACH her geçişi <code>State machine transitioning 'GOTO':'aborted'--&gt;'RETRY'</code> biçiminde <code>INFO</code> olarak loglar. Çoğu hatayı bu satırları okuyarak bulursun.</p>
+
+<h3>Ctrl+C ile düzgün kapatmak</h3>
+<p><code>smach_ros.set_preempt_handler(top)</code>, ROS kapanırken makineye iptal gönderir ve makine bitene kadar kapanmayı bekletir. Böylece örneğin <code>move_base</code>'e gönderilmiş hedef iptal edilir; robot, görev düğümü kapandıktan sonra eski hedefe gitmeye devam etmez.</p>
+<div class="call warn"><b><code>set_preempt_handler</code> + ana thread'de <code>execute()</code> = kilitlenme</b>
+<p>Ctrl+C sinyali Python'da <strong>ana thread'de</strong> işlenir. <code>set_preempt_handler</code>'ın işleyicisi de orada çalışır ve makinenin bitmesini bekler. Makine de ana thread'de <code>top.execute()</code> içindeyse, özellikle bir Concurrence'ın içindeyken, makine hiç ilerleyemez ve süreç sonsuza dek "waiting for state machine to terminate" yazarak asılı kalır (bu sayfadaki örnekle denendi). Çözüm: <code>execute()</code>'u ayrı bir thread'de çalıştırıp ana thread'i sinyaller için boş bırakmak.</p></div>
+<pre><code>import threading
+
+smach_ros.set_preempt_handler(top)
+result = []
+worker = threading.Thread(target=lambda: result.append(top.execute()))
+worker.start()
+while worker.is_alive():      # ana thread boşta bekler; Ctrl+C burada işlenir
+    worker.join(0.5)
+outcome = result[0] if result else None</code></pre>
+
+<h3>Makineyi action sunucusu olarak sunmak</h3>
+<p><code>smach_ros.ActionServerWrapper</code>, bütün makineyi bir action sunucusuna çevirir. Böylece başka bir düğüm (ya da üst düzey bir görev yöneticisi) görevi <code>move_base</code> gibi başlatıp iptal edebilir:</p>
+<pre><code>sm = smach.StateMachine(outcomes=["done", "failed", "preempted"],
+                        input_keys=["action_goal"], output_keys=["action_result"])
+# ... durumlar ...
+asw = smach_ros.ActionServerWrapper("patrol", PatrolAction, wrapped_container=sm,
+                                    succeeded_outcomes=["done"],
+                                    aborted_outcomes=["failed"],
+                                    preempted_outcomes=["preempted"])
+asw.run_server()      # bloklamaz
+rospy.spin()</code></pre>
+<p>(<code>PatrolAction</code> kendi tanımladığın bir action türüdür.) Gelen hedef, makinenin userdata'sına <code>action_goal</code> anahtarıyla konur (<code>goal_key</code> ile değiştirilebilir). Makinenin bunu görebilmesi için <code>input_keys</code>'te bildirmesi gerekir. Sonuç <code>action_result</code>'tan okunur. Listelerde olmayan bir makine sonucu <code>ABORTED</code> olarak döner.</p>
+</section>
+
+<section id="smach-ornek">
+<h2>Tam örnek: pil izlemeli devriye</h2>
+<p>Aşağıdaki görev düğümü bu sayfadaki parçaları birleştirir. Waypoint'leri sırayla gezer; ulaşılamayan noktayı üç denemeden sonra atlar. Bu sırada pili paralel olarak izler; pil %20'nin altına düşerse devriyeyi iptal edip şarj noktasına gider.</p>
+<figure>
+<pre class="mermaid">flowchart TD
+  subgraph RUN["RUN (Concurrence)"]
+    direction TB
+    subgraph PATROL["PATROL (StateMachine)"]
+      N["NEXT"] -->|next| G["GOTO<br/>SimpleActionState"]
+      G -->|succeeded| A["ADVANCE"]
+      G -->|aborted| R["RETRY"]
+      R -->|retry| G
+      R -->|give_up| A
+      A -->|next| N
+    end
+    B["BATTERY<br/>MonitorState"]
+  end
+  N -->|done| F(["finished"])
+  B -->|invalid| C["GO_CHARGE<br/>SimpleActionState"]
+  C -->|succeeded| CH(["charging"])
+  C -->|aborted| FA(["failed"])</pre>
+<figcaption><b>Görev yapısı.</b> PATROL ile BATTERY aynı anda çalışır; hangisi önce biterse diğeri iptal edilir. Devriye bittiyse görev <code>finished</code>, pil düştüyse <code>GO_CHARGE</code> çalışır. Ctrl+C her seviyede <code>preempted</code> olarak yukarı taşınır.</figcaption>
+</figure>
+
+<h3>Parametreler</h3>
+<pre><code># myrobot_mission/config/mission.yaml
+waypoints:
+  A: {x: 4.0,  y: 2.5,  yaw: 1.57}
+  B: {x: 18.0, y: -3.0, yaw: 3.14}
+  C: {x: 10.0, y: 6.0,  yaw: 0.0}
+charger: {x: 0.5, y: 0.0, yaw: 3.14}</code></pre>
+<pre><code>&lt;!-- myrobot_mission/launch/mission.launch --&gt;
+&lt;launch&gt;
+  &lt;node pkg="myrobot_mission" type="mission_sm.py" name="mission_node" output="screen"&gt;
+    &lt;rosparam command="load" file="$(find myrobot_mission)/config/mission.yaml"/&gt;
+  &lt;/node&gt;
+&lt;/launch&gt;</code></pre>
+<p>Waypoint'ler adlarına göre alfabetik sırayla gezilir (<code>sorted</code>). Pil topic'i <code>battery_state</code>'tir (<code>sensor_msgs/BatteryState</code>, <code>percentage</code> alanı 0 ile 1 arası). Robotunun sürücüsü başka bir ad kullanıyorsa launch'ta <code>&lt;remap&gt;</code> ile bağla.</p>
+
+<h3>Kod</h3>
+<pre><code>#!/usr/bin/env python3
+# myrobot_mission/scripts/mission_sm.py
+import threading
+import rospy
+import smach
+import smach_ros
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from sensor_msgs.msg import BatteryState
+from geometry_msgs.msg import Quaternion
+from tf.transformations import quaternion_from_euler
+
+MAX_TRIES = 3
+
+
+def make_goal(x, y, yaw):
+    goal = MoveBaseGoal()
+    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.stamp = rospy.Time.now()
+    goal.target_pose.pose.position.x = x
+    goal.target_pose.pose.position.y = y
+    goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, yaw))
+    return goal
+
+
+class NextWaypoint(smach.State):
+    """Sıradaki waypoint'i seçer; liste bittiyse 'done' döner."""
+    def __init__(self):
+        smach.State.__init__(self, outcomes=["next", "done"],
+                             input_keys=["waypoints", "index"],
+                             output_keys=["target"])
+
+    def execute(self, ud):
+        if ud.index &gt;= len(ud.waypoints):
+            return "done"
+        target = ud.waypoints[ud.index]
+        rospy.loginfo("Hedef: %s", target[0])
+        ud.target = target      # yalnızca output_keys'te: geri okunamaz
+        return "next"
+
+
+class Retry(smach.State):
+    """Başarısız denemeyi sayar; hak bittiyse noktayı atlar."""
+    def __init__(self):
+        smach.State.__init__(self, outcomes=["retry", "give_up"],
+                             io_keys=["tries"])
+
+    def execute(self, ud):
+        ud.tries += 1
+        if ud.tries &lt; MAX_TRIES:
+            rospy.logwarn("Deneme %d/%d başarısız, tekrar", ud.tries, MAX_TRIES)
+            return "retry"
+        rospy.logerr("Nokta %d denemede ulaşılamadı, atlanıyor", MAX_TRIES)
+        return "give_up"
+
+
+@smach.cb_interface(outcomes=["next"],
+                     input_keys=["index"], output_keys=["index", "tries"])
+def advance(ud):
+    ud.index += 1
+    ud.tries = 0
+    return "next"
+
+
+@smach.cb_interface(input_keys=["target"])
+def goal_cb(ud, goal):
+    _, x, y, yaw = ud.target
+    return make_goal(x, y, yaw)
+
+
+def build_patrol(waypoints):
+    sm = smach.StateMachine(outcomes=["finished", "preempted"])
+    sm.userdata.waypoints = waypoints
+    sm.userdata.index = 0
+    sm.userdata.tries = 0
+    with sm:
+        smach.StateMachine.add("NEXT", NextWaypoint(),
+                               transitions={"next": "GOTO", "done": "finished"})
+        smach.StateMachine.add("GOTO",
+                               smach_ros.SimpleActionState(
+                                   "move_base", MoveBaseAction, goal_cb=goal_cb,
+                                   exec_timeout=rospy.Duration(120.0)),
+                               transitions={"succeeded": "ADVANCE",
+                                            "aborted": "RETRY",
+                                            "preempted": "preempted"})
+        smach.StateMachine.add("RETRY", Retry(),
+                               transitions={"retry": "GOTO", "give_up": "ADVANCE"})
+        smach.StateMachine.add("ADVANCE", smach.CBState(advance),
+                               transitions={"next": "NEXT"})
+    return sm
+
+
+def battery_ok(ud, msg):
+    # True: izlemeye devam; False: durum 'invalid' ile biter
+    return msg.percentage &gt; 0.2
+
+
+def main():
+    rospy.init_node("mission_node")   # durumlar oluşturulmadan ÖNCE
+
+    wp = rospy.get_param("~waypoints")
+    waypoints = [(name, p["x"], p["y"], p["yaw"]) for name, p in sorted(wp.items())]
+    charger = rospy.get_param("~charger")
+
+    run = smach.Concurrence(
+        outcomes=["finished", "low_battery", "preempted"],
+        default_outcome="preempted",
+        outcome_map={"finished": {"PATROL": "finished"},
+                     "low_battery": {"BATTERY": "invalid"}},
+        child_termination_cb=lambda outcomes: True)   # biri bitince diğerini durdur
+    with run:
+        smach.Concurrence.add("PATROL", build_patrol(waypoints))
+        smach.Concurrence.add("BATTERY",
+                              smach_ros.MonitorState("battery_state", BatteryState, battery_ok))
+
+    top = smach.StateMachine(outcomes=["finished", "charging", "failed", "preempted"])
+    with top:
+        smach.StateMachine.add("RUN", run,
+                               transitions={"finished": "finished",
+                                            "low_battery": "GO_CHARGE",
+                                            "preempted": "preempted"})
+        smach.StateMachine.add("GO_CHARGE",
+                               smach_ros.SimpleActionState(
+                                   "move_base", MoveBaseAction,
+                                   goal=make_goal(charger["x"], charger["y"], charger["yaw"])),
+                               transitions={"succeeded": "charging",
+                                            "aborted": "failed",
+                                            "preempted": "preempted"})
+
+    sis = smach_ros.IntrospectionServer("mission", top, "/MISSION")
+    sis.start()
+    smach_ros.set_preempt_handler(top)   # Ctrl+C: önce makineyi durdur, sonra kapan
+
+    # execute() ayrı bir thread'de: sinyal işleyicisi ana thread'de çalışır ve
+    # makinenin bitmesini bekler. Makine de ana thread'deyse ikisi kilitlenir.
+    result = []
+    worker = threading.Thread(target=lambda: result.append(top.execute()))
+    worker.start()
+    while worker.is_alive():
+        worker.join(0.5)
+    rospy.loginfo("Görev bitti: %s", result[0] if result else None)
+    sis.stop()
+
+if __name__ == "__main__":
+    main()</code></pre>
+<p>Dosyayı çalıştırılabilir yap (<code>chmod +x scripts/mission_sm.py</code>). <code>package.xml</code>'e <code>smach</code>, <code>smach_ros</code>, <code>move_base_msgs</code> ve <code>sensor_msgs</code>'u <code>exec_depend</code> olarak ekle.</p>
+
+<h3>Beklenen davranış</h3>
+<div class="tw"><table><thead><tr><th>Durum</th><th>Loglarda görülen</th><th>Görevin sonucu</th></tr></thead><tbody>
+<tr><td>Tüm noktalar ulaşılabilir</td><td><code>NEXT → GOTO → ADVANCE</code> her nokta için</td><td><code>finished</code></td></tr>
+<tr><td>Bir nokta ulaşılamaz</td><td><code>GOTO:'aborted' → RETRY</code> iki kez, sonra <code>RETRY:'give_up' → ADVANCE</code>; görev sonraki noktayla sürer</td><td><code>finished</code></td></tr>
+<tr><td>Pil %20'nin altına düşer</td><td><code>BATTERY</code> <code>invalid</code>, <code>GOTO</code> iptal edilir (<code>move_base</code> hedefi de), sonra <code>GO_CHARGE</code></td><td><code>charging</code> (ya da <code>failed</code>)</td></tr>
+<tr><td>Ctrl+C</td><td><code>Preempt on action 'move_base' cancelling goal</code></td><td><code>preempted</code>; düğüm kendiliğinden kapanır</td></tr>
+</tbody></table></div>
+<div class="call try"><b>Dene: robotsuz test</b>
+<p>Görev mantığını robot olmadan denemek için sahte bir pil yayınla: <code>rostopic pub -r 5 /battery_state sensor_msgs/BatteryState "{percentage: 0.9}"</code>. Görev çalışırken bu komutu durdurup <code>percentage: 0.1</code> ile yeniden başlatırsan <code>GO_CHARGE</code>'a geçişi görürsün. <code>move_base</code> için Gazebo'daki navigasyon yığınını ya da <code>SimpleActionServer</code> ile yazılmış birkaç satırlık sahte bir sunucuyu kullanabilirsin.</p></div>
+
+<h3>Geliştirme fikirleri</h3>
+<ul class="b">
+<li><strong>Yanaşma:</strong> <code>GO_CHARGE</code>'dan sonra <a href="gorev-ve-docking.html#docking">docking</a> action'ını çağıran bir <code>SimpleActionState("dock", DockAction, goal=DockGoal())</code> ekle.</li>
+<li><strong>Costmap temizliği:</strong> <code>RETRY</code> ile <code>GOTO</code> arasına <a href="#smach-ros"><code>move_base/clear_costmaps</code></a> çağıran bir <code>ServiceState</code> koy.</li>
+<li><strong>Mesafeye göre zaman aşımı:</strong> <code>exec_timeout</code> sabit; noktalar çok farklı uzaklıktaysa <code>GOTO</code>'yu kendi durumunla sar ya da <a href="gorev-ve-docking.html#gorev">Görev katmanı</a>'ndaki gibi süreyi mesafeden hesapla.</li>
+<li><strong>Kaldığı yerden devam:</strong> şarjdan sonra devriyenin baştan değil, kalınan noktadan sürmesi için <code>index</code>'i üst makinenin userdata'sında tut ve PATROL'a <code>input_keys</code>/<code>output_keys</code> ile geçir.</li>
+</ul>
+</section>
+
+<section id="smach-hatalar">
+<h2>Sık karşılaşılan SMACH hataları</h2>
+<div class="tw"><table><thead><tr><th>Belirti</th><th>Sebep</th><th>Çözüm</th></tr></thead><tbody>
+<tr><td><code>execute()</code> hemen <code>None</code> döndü, hiçbir durum çalışmadı</td><td>Tutarlılık denetimi başarısız: eksik geçiş, yanlış yazılmış etiket ya da makinede olmayan bir sonuç</td><td>Logdaki <code>InvalidTransitionError: State machine failed consistency check</code> satırını oku; eksik sonucu ya bağla ya da makinenin sonuçlarına ekle.</td></tr>
+<tr><td><code>InvalidTransitionError: Attempted to return outcome ...</code></td><td><code>execute()</code> bildirilmemiş bir sonuç ya da <code>None</code> döndürdü</td><td>Tüm dönüş yollarını kontrol et; sonucu kurucudaki <code>outcomes</code>'a ekle.</td></tr>
+<tr><td><code>InvalidUserCodeError: Reading from SMACH userdata key ...</code></td><td>Anahtar <code>input_keys</code>'te değil, ya da yalnızca <code>output_keys</code>'te olan bir anahtar geri okundu</td><td>Anahtarı <code>input_keys</code>'e (gerekirse ikisine birden) ekle.</td></tr>
+<tr><td>Bir durumun yazdığı değer sonraki durumda eski görünüyor</td><td>Anahtar <code>output_keys</code>'te değil; yazma yalnızca loglanıp atıldı</td><td>Logda <code>Writing to SMACH userdata key</code> ara; anahtarı <code>output_keys</code>'e ekle.</td></tr>
+<tr><td><code>Userdata key '...' not available</code> (iç içe makinede)</td><td>İç kapsayıcı üstten alacağı anahtarı bildirmemiş</td><td>İç makinenin kurucusuna <code>input_keys=[...]</code> ekle.</td></tr>
+<tr><td>Ctrl+C sonrası süreç "waiting for state machine to terminate" yazıp kapanmıyor</td><td><code>set_preempt_handler</code> ile <code>execute()</code> aynı (ana) thread'de; ya da bir durum iptali dinlemiyor</td><td><code>execute()</code>'u ayrı thread'e al (<a href="#smach-izleme">yukarıdaki</a> kalıp); uzun döngülere <code>preempt_requested()</code> denetimi ekle.</td></tr>
+<tr><td>Görev düğümü kapandı ama robot hâlâ hedefe gidiyor</td><td>Kapanışta makine iptal edilmedi; <code>move_base</code> hedefi açık kaldı</td><td><code>set_preempt_handler</code> kullan (thread kalıbıyla).</td></tr>
+<tr><td>Makinede bir istisna oldu, süreç kapanmıyor</td><td>Arka plan thread'leri (introspection, action istemcisi) süreci canlı tutuyor</td><td>Worker thread kalıbında ana thread yine çıkar. Kendi kurgunda <code>try/finally</code> içinde <code>sis.stop()</code> ve <code>rospy.signal_shutdown(...)</code> çağır.</td></tr>
+<tr><td><code>smach_viewer</code> boş</td><td><code>IntrospectionServer</code> başlatılmamış, ya da viewer başka bir ROS master'a bağlı</td><td><code>sis.start()</code> ekle; <code>rostopic list | grep smach</code> ile topic'leri kontrol et.</td></tr>
+<tr><td>Durum hiç bitmiyor, Concurrence takılıyor</td><td>Bir çocuk iptale uymuyor ya da <code>child_termination_cb</code> verilmemiş (kapsayıcı tüm çocukları bekler)</td><td>Çocuklara iptal denetimi ekle; "biri bitince hepsi dursun" için <code>child_termination_cb=lambda o: True</code>.</td></tr>
+<tr><td><code>SimpleActionState</code> hemen <code>aborted</code> dönüyor</td><td>Action sunucusu yok (ad yanlış ya da <code>move_base</code> çalışmıyor), veya <code>goal_cb</code> istisna fırlattı</td><td>Logda <code>Action server for ... is not running</code> ya da <code>Could not execute goal callback</code> ara; <code>rostopic list | grep move_base</code>.</td></tr>
+</tbody></table></div>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="gorev-ve-docking.html"><small>← Önceki</small>Görev ve docking</a><a class="next" href="ref-amcl-move-base.html"><small>Sonraki →</small>AMCL ve move_base</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/mermaid.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

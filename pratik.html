@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pratik: çalıştırma, kayıt, hata ayıklama · ROS AMR Wiki</title>
+<meta name="description" content="Her tarifte sıra önemli: önce robot (simülasyon ya da sürücüler), sonra navigasyon, sonra görev. Her komut ayrı bir terminalde çalışır (ya da Ctrl+Shift+T ile yeni sekme)">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg cur"><a href="pratik.html" aria-current="page">Pratik</a><ul class="sub"><li><a href="#tarifler">Çalıştırma tarifleri</a></li><li><a href="#rosbag">Kayıt ve tekrar (rosbag)</a></li><li><a href="#log-tanilama">Log ve tanılama</a></li><li><a href="#gercek-robot">Simülasyondan gerçeğe</a></li><li><a href="#hata-ayiklama">Hata ayıklama</a></li></ul></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">D · Pratik</p><h1>Pratik: çalıştırma, kayıt, hata ayıklama</h1></header>
+<section id="tarifler">
+<h2>Çalıştırma tarifleri</h2>
+<p>Her tarifte <strong>sıra</strong> önemli: önce robot (simülasyon ya da sürücüler), sonra navigasyon, sonra görev. Her komut ayrı bir terminalde çalışır (ya da <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>T</kbd> ile yeni sekme). <code>myrobot_*</code> paket ve launch adlarını kendi projeninkilerle değiştir.</p>
+
+<h3>Tarif 1: Harita çıkarma</h3>
+<div class="term"><div class="th"><span>Terminal 1</span><span>Robot (Gazebo)</span></div><pre>roslaunch myrobot_gazebo sim.launch</pre></div>
+<div class="term"><div class="th"><span>Terminal 2</span><span>SLAM</span></div><pre>rosrun gmapping slam_gmapping scan:=scan _base_frame:=base_footprint</pre></div>
+<div class="term"><div class="th"><span>Terminal 3</span><span>Sürüş</span></div><pre>rosrun teleop_twist_keyboard teleop_twist_keyboard.py</pre></div>
+<div class="term"><div class="th"><span>Terminal 4</span><span>Kaydet</span></div><pre>rosrun map_server map_saver -f ~/catkin_ws/src/myrobot_navigation/maps/depo</pre></div>
+
+<h3>Tarif 2: Haritada gezinme (navigasyon)</h3>
+<div class="term"><div class="th"><span>Terminal 1</span><span>Robot (Gazebo)</span></div><pre>roslaunch myrobot_gazebo sim.launch</pre></div>
+<div class="term"><div class="th"><span>Terminal 2</span><span>map_server + amcl + move_base</span></div><pre>roslaunch myrobot_navigation navigation.launch</pre></div>
+<div class="term"><div class="th"><span>Terminal 3</span><span>RViz</span></div><pre>rosrun rviz rviz -d $(rospack find myrobot_navigation)/rviz/nav.rviz</pre></div>
+<p>RViz'de önce <em>2D Pose Estimate</em> ile robotun yerini ver, sonra <em>2D Nav Goal</em> ile bir hedef tıkla. <code>navigation.launch</code>'ın içeriği için bkz. <a href="yapi-ve-araclar.html#launch">Launch dosyaları</a>.</p>
+
+<h3>Tarif 3: Görev katmanı</h3>
+<div class="term"><div class="th"><span>Terminal 1</span><span>Robot + navigasyon + RViz</span></div><pre>roslaunch myrobot_bringup bringup.launch</pre></div>
+<div class="term"><div class="th"><span>Terminal 2</span><span>Görev node'ları</span></div><pre>roslaunch myrobot_mission mission.launch</pre></div>
+<p>Yaygın bir düzen: <code>bringup.launch</code> robotu, navigasyonu ve RViz'i <code>&lt;include&gt;</code> ile başlatan "hepsi bir arada" dosyadır; <code>mission.launch</code> ise görev node'unu (ve varsa docking sunucusunu) başlatır. Görev launch'ının navigasyonu <em>başlatmaması</em>, görev kodunu değiştirirken navigasyonu yeniden başlatmak zorunda kalmamanı sağlar.</p>
+
+<h3>Kapatma</h3>
+<p>Her terminalde <kbd>Ctrl</kbd>+<kbd>C</kbd>. Gazebo'yu kapatmak birkaç saniye sürebilir; takılırsa <code>killall -9 gzserver gzclient</code> son çaredir.</p>
+</section>
+
+<section id="rosbag">
+<h2>Kayıt ve tekrar (rosbag)</h2>
+<p><strong>rosbag</strong>, topic'lerde akan mesajları bir dosyaya kaydedip sonra aynen yeniden oynatmanı sağlar. Bir AMR projesinde <em>en değerli hata ayıklama aracıdır</em>: gerçek robotta bir hata olduğunda kaydı alıp masanda, robotsuz analiz edebilirsin.</p>
+<div class="term"><div class="th"><span>Terminal</span><span>kaydet</span></div><pre>rosbag record -O run1.bag /scan /odom /tf /tf_static /cmd_vel /amcl_pose</pre></div>
+<div class="term"><div class="th"><span>Terminal</span><span>tekrar oynat</span></div><pre>rosparam set use_sim_time true
+rosbag play --clock run1.bag</pre></div>
+<ul class="b">
+<li><strong>Neyi kaydetmeli:</strong> sensörler (<code>/scan</code>; birden çok lidar birleştiriliyorsa ham taramalar da, birleştirme sorunlarını sonradan incelemek için), konum (<code>/odom</code>, <code>/tf</code>, <code>/tf_static</code>), komutlar (<code>/cmd_vel</code>) ve kararlar (<code>/amcl_pose</code>, görev durumu). Kamera görüntüsü çok yer kaplar; gerekirse sıkıştırılmış topic'i kaydet.</li>
+<li><strong>Tekrar oynatırken</strong> <code>--clock</code> ile bag'in zamanını yayınlar, <code>use_sim_time</code> ile node'ların bunu kullanmasını sağlarsın; aksi halde zaman damgaları çakışır.</li>
+<li><strong>İçini görmek için:</strong> <code>rosbag info run1.bag</code>; RViz ve <code>rqt_bag</code> ile bag'i gezebilirsin.</li>
+<li>Bag'ler büyür (kamerayla dakikada yüzlerce MB). Süre sınırı koy (<code>--duration=60</code>) ve git'e ekleme.</li>
+</ul>
+<div class="call try"><b>Dene</b>
+<p>Simülasyonda robotu bir dakika gezdirirken <code>/scan</code>, <code>/odom</code> ve <code>/tf</code>'yi kaydet. Simülasyonu kapat, sadece <code>rosbag play --clock</code> ile bag'i oynat ve RViz'de robotun aynı yolu izlediğini gör.</p></div>
+</section>
+
+<section id="log-tanilama">
+<h2>Log ve tanılama</h2>
+<p>Çalışan bir sistemin ne yaptığını anlamanın iki yolu vardır: node'ların yazdığı <strong>loglar</strong> ve robotun sağlığını bildiren <strong>tanılama</strong> mesajları.</p>
+<h3>Log seviyeleri</h3>
+<div class="tw"><table><thead><tr><th>Seviye</th><th>Python</th><th>Ne için</th></tr></thead><tbody>
+<tr><td>DEBUG</td><td><code>rospy.logdebug()</code></td><td>Geliştirme sırasında ayrıntı; varsayılan olarak görünmez</td></tr>
+<tr><td>INFO</td><td><code>rospy.loginfo()</code></td><td>Normal akış ("hedefe gidiliyor")</td></tr>
+<tr><td>WARN</td><td><code>rospy.logwarn()</code></td><td>Beklenmedik ama sistem devam edebiliyor</td></tr>
+<tr><td>ERROR</td><td><code>rospy.logerr()</code></td><td>Bir işlem başarısız oldu</td></tr>
+<tr><td>FATAL</td><td><code>rospy.logfatal()</code></td><td>Sistem çalışmaya devam edemez</td></tr>
+</tbody></table></div>
+<p>Döngü içindeki loglar terminali doldurur. <code>rospy.logwarn_throttle(2.0, "…")</code> aynı mesajı en fazla 2 sn'de bir, <code>rospy.loginfo_once("…")</code> yalnızca bir kez yazar.</p>
+<ul class="b">
+<li><code>rqt_console</code>: logları seviyeye ve node'a göre filtreleyerek izler.</li>
+<li><code>rqt_logger_level</code>: çalışırken bir node'un log seviyesini değiştirir (örneğin DEBUG'a çek).</li>
+<li>Bir launch'taki node'un çıktısını terminalde görmek için <code>output="screen"</code> ver.</li>
+<li>Loglar diske de yazılır (<code>~/.ros/log</code>); <code>roscd log</code> ile oraya gidebilirsin.</li>
+</ul>
+<h3>Tanılama (diagnostics)</h3>
+<p>Robotun bileşenleri (batarya, motor sürücüsü, sensörler) sağlıklarını <code>/diagnostics</code> topic'ine <code>diagnostic_msgs/DiagnosticArray</code> olarak yayınlar. Her kayıtta bir seviye vardır: <strong>OK</strong>, <strong>WARN</strong>, <strong>ERROR</strong>, <strong>STALE</strong> (veri gelmiyor). Yayınlamak için <code>diagnostic_updater</code> kütüphanesi, izlemek için <code>rqt_robot_monitor</code> kullanılır. Görev katmanı da bunlara bakıp karar verebilir (örneğin "batarya %15'in altındaysa şarj istasyonuna git").</p>
+<h3>Basit bir watchdog</h3>
+<p><strong>Watchdog</strong>, komutlar belirli bir süre gelmezse robotu durduran bekçidir; komut üreten node çöktüğünde robotun son hızıyla gitmesini engeller. <code>twist_mux</code> bu işi <strong>yapmaz</strong>: girişleri zaman aşımına uğrayınca sıfır hız yayınlamaz, yalnızca susar; son komutun sürüp sürmeyeceği robot sürücüsüne kalır (bkz. <a href="ref-yardimci-paketler.html#twist-mux-ref">twist_mux referansı</a>). Sürücünün kendi komut zaman aşımı yoksa aşağıdaki gibi bir watchdog gerekir: <code>cmd_vel_raw</code>'u dinler ve <code>/cmd_vel</code>'e iletir; 0,5 sn komut gelmezse sıfır hız yollar. <code>twist_mux</code> ile birlikte kullanacaksan seçicinin çıkışını <code>/cmd_vel</code> yerine <code>cmd_vel_raw</code>'a remap et (<code>&lt;remap from="cmd_vel_out" to="cmd_vel_raw"/&gt;</code>):</p>
+<pre><code>import rospy
+from geometry_msgs.msg import Twist
+
+class Watchdog:
+    def __init__(self, timeout=0.5):
+        self.timeout = timeout
+        self.last = rospy.Time.now()
+        self.pub = rospy.Publisher("cmd_vel", Twist, queue_size=1)
+        rospy.Subscriber("cmd_vel_raw", Twist, self.on_cmd)
+
+    def on_cmd(self, msg):
+        self.last = rospy.Time.now()
+        self.pub.publish(msg)
+
+    def spin(self):
+        rate = rospy.Rate(20)
+        while not rospy.is_shutdown():
+            if (rospy.Time.now() - self.last).to_sec() &gt; self.timeout:
+                self.pub.publish(Twist())            # sıfır hız
+            rate.sleep()
+
+rospy.init_node("cmd_vel_watchdog")
+Watchdog().spin()</code></pre>
+<div class="call warn"><b>Yazılım watchdog'u yeterli değildir</b>
+<p>Bu node de çökebilir. Gerçek robotta en güvenilir bekçi <strong>motor sürücüsünün kendisidir</strong> (komut zaman aşımında donanım seviyesinde durur). Yazılım watchdog'unu ek bir katman olarak kullan, tek önlem olarak değil.</p></div>
+</section>
+
+<section id="gercek-robot">
+<h2>Simülasyondan gerçeğe</h2>
+<p>İyi bir mimaride simülasyondan gerçek robota geçmek, <em>sürücü katmanını değiştirmek</em> demektir; navigasyon, görev ve docking kodun büyük ölçüde aynı kalır. Yine de "çalışıyor" ile "güvenilir" arasında ciddi bir fark vardır. Kontrol listesi:</p>
+<div class="tw"><table><thead><tr><th>Konu</th><th>Simülasyonda</th><th>Gerçekte yapman gereken</th></tr></thead><tbody>
+<tr><td>Zaman</td><td><code>use_sim_time: true</code></td><td><code>false</code>. Birden çok bilgisayar varsa saatlerini senkronize et (ör. <code>chrony</code>); TF zaman uyuşmazlıkları en sık görülen gizemli hatalardan biridir.</td></tr>
+<tr><td>Robot sürücüsü</td><td>Gazebo <code>diff_drive</code></td><td>Motor sürücüsünün ROS paketi (ya da <code>ros_control</code> + <code>diff_drive_controller</code>). <code>/cmd_vel</code>'i alıp <code>/odom</code> ve TF yayınlamalı.</td></tr>
+<tr><td>Lidar(lar)</td><td>Gazebo eklentileri</td><td>Her lidar için üreticinin sürücü paketi (<code>rplidar_ros</code>, <code>sick_scan</code>, <code>urg_node</code> gibi), ayrı topic ve çerçeveyle. Çerçeve adlarını URDF ile eşleştir; birden çok lidar varsa birleştirici node'u da başlat.</td></tr>
+<tr><td>Odometri</td><td>Varsayılan olarak hiç kaymaz (<code>odometrySource: world</code>)</td><td>Tekerlek yarıçapını ve tekerlekler arası mesafeyi <strong>ölç ve kalibre et</strong>; IMU ile <code>robot_localization</code> EKF ekle.</td></tr>
+<tr><td>Hız ve ivme</td><td>Serbest</td><td>Yükle ve zeminle sınırla. Önce düşük hızda dene; frenleme mesafesi simülasyondakinden uzundur.</td></tr>
+<tr><td>Güvenlik</td><td>Yok</td><td>Donanım acil durdurma düğmesi (motor enerjisini <strong>doğrudan</strong> keser, yazılıma bağlı değildir), lidar tabanlı koruma alanı, komut kesilirse duran <strong>watchdog</strong>.</td></tr>
+<tr><td>Ağ</td><td>Tek bilgisayar</td><td>Robot ve dizüstü ayrı makineyse <code>ROS_MASTER_URI</code> ve <code>ROS_IP</code>/<code>ROS_HOSTNAME</code> ayarla; Master robotta çalışır.</td></tr>
+<tr><td>Başlatma</td><td>Elle</td><td>Robot açılınca sistem kendiliğinden kalkmalı (<code>robot_upstart</code> ya da <code>systemd</code> servisi).</td></tr>
+<tr><td>Kayıt</td><td>İsteğe bağlı</td><td>Her koşuyu rosbag ile kaydet; arıza analizini bu kayıtlarla yap.</td></tr>
+</tbody></table></div>
+<div class="call warn"><b>Güvenlik önce gelir</b>
+<p>Tekerlekli, yük taşıyan bir robot insanların yanında çalışıyorsa, güvenliği yazılıma değil <strong>donanıma</strong> bağla. ROS node'ları çökebilir, gecikebilir ya da yanlış komut üretebilir. Acil durdurma, koruma alanı ve hız sınırı sistemin en kritik parçasıdır ve ayrıca ilgili standartlara (ör. sürücüsüz endüstriyel araçlar için ISO 3691-4) göre değerlendirilmelidir; bu döküman güvenlik tasarımı için yeterli değildir.</p></div>
+</section>
+
+<section id="hata-ayiklama">
+<h2>Hata ayıklama</h2>
+<div class="tw"><table><thead><tr><th>Belirti</th><th>Muhtemel neden ve çözüm</th></tr></thead><tbody>
+<tr><td><em>[rospack] Error: package 'x' not found</em> (ya da <em>RLException: [dosya.launch] is neither a launch file in package [x] nor is [x] a launch file name</em>)</td><td>Ortam yüklü değil. Yeni terminal aç ya da <code>source ~/catkin_ws/devel/setup.bash</code>. Overlay varsa source sırasını kontrol et.</td></tr>
+<tr><td>Yeni yazdığım paket/mesaj görünmüyor</td><td><code>catkin_make</code> yapıp yeniden <code>source devel/setup.bash</code>. Açık terminaller değişikliği otomatik almaz.</td></tr>
+<tr><td>RViz'de robot haritada yanlış yerde, lidar çizgileri duvara oturmuyor</td><td>AMCL başlangıç konumu yanlış. RViz'de <em>2D Pose Estimate</em> ile robotun gerçek yerini göster. Launch'taki <code>initial_pose</code> ile doğma noktası aynı olmalı.</td></tr>
+<tr><td>Robot hedefe gitmiyor; "costmap" ya da "transform" uyarısı</td><td>Navigasyon simülasyondan önce başlamış olabilir (<code>/clock</code> yok) ya da TF ağacında bir bağ eksik. <code>rostopic hz /scan</code> ile lidarın aktığını, <code>view_frames</code> ile ağacı doğrula.</td></tr>
+<tr><td><em>"Could not find a connection between 'map' and 'base_footprint'"</em></td><td>AMCL çalışmıyor ya da <code>map→odom</code> yayınlanmıyor. AMCL'in çerçeve adlarını ve <code>/map</code> ile <code>/scan</code>'in geldiğini kontrol et.</td></tr>
+<tr><td>Birleşik taramada duvarlar çift görünüyor ya da boşluklar var</td><td>Bir lidarın çerçevesi (URDF'teki konum/yön) yanlış ya da birleştiricinin <code>destination_frame</code>'i tutarsız olabilir. RViz'de ham taramaları ayrı renklerle göster; hangisi duvara oturmuyorsa onun URDF konumunu düzelt.</td></tr>
+<tr><td>Robot dar kapıdan geçmiyor</td><td><code>inflation_radius</code> ya da <code>footprint</code> çok büyük. RViz'de costmap'e bak: kapı kapalı görünüyorsa ayarı küçült.</td></tr>
+<tr><td>Robot hedefe yaklaşıp yerinde kıpırdıyor/titriyor</td><td>Hedef toleransları çok küçük olabilir (<code>xy_goal_tolerance</code>, <code>yaw_goal_tolerance</code>). Önce <code>rosservice call /move_base/clear_costmaps</code> ile eski engelleri temizle.</td></tr>
+<tr><td>Robot sürekli dönüp çıkış arıyor, "recovery" logları</td><td>Costmap'te sahte engeller (haritada olmayan lekeler) ya da yanlış lokalizasyon olabilir. Costmap'i RViz'de incele.</td></tr>
+<tr><td>Robot komutu almıyor</td><td><code>rostopic echo /cmd_vel</code> ile komutun geldiğine bak. Geliyorsa sürücü tarafında; gelmiyorsa komut üreten node ya da <code>twist_mux</code> yapılandırmasında.</td></tr>
+<tr><td>Robot titriyor / iki kaynağın komutları çakışıyor</td><td>İki node aynı anda <code>/cmd_vel</code>'e yazıyor. <code>rostopic info /cmd_vel</code> ile yayıncıları gör; <code>twist_mux</code> kullan.</td></tr>
+<tr><td>Gazebo çok yavaş, robot "ağır çekimde" hareket ediyor</td><td>Gerçek zaman faktörü (Gazebo penceresinin altında <em>Real Time Factor</em>) 1'in çok altında. Dünyayı sadeleştir, lidar örnek sayısını ya da sensör güncelleme hızını düşür, gereksiz eklentileri kapat.</td></tr>
+<tr><td>Lidar verisi gelmiyor (<code>/scan</code> boş)</td><td>Birleştirici kullanıyorsan önce ham lidar topic'lerine <code>rostopic hz</code> ile bak: ham veri geliyorsa sorun birleştirici node'dadır (çalışıyor mu, <code>laserscan_topics</code> doğru mu, TF var mı?); gelmiyorsa sürücü ya da Gazebo eklentisinde.</td></tr>
+<tr><td>Docking robot yerinde dönüp duruyor</td><td>Şerit görülmüyor. <code>/docking/mask</code>'a bak; maske boşsa HSV eşiklerini ya da kamera açısını kontrol et.</td></tr>
+<tr><td><em>shutdown request: [/isim] Reason: new node registered with same name</em></td><td>Aynı ada sahip ikinci bir node başlatıldı; ROS eskisini kapatır. Aynı launch iki kez başlatılmış ya da bir launch dosyası bir diğerini zaten include ediyor olabilir. <code>rosnode list</code>'e bak.</td></tr>
+<tr><td><code>rosrun</code> "Couldn't find executable"</td><td>Script çalıştırılabilir değil: <code>chmod +x</code>. İlk satırda <code>#!/usr/bin/env python3</code> olsun.</td></tr>
+</tbody></table></div>
+<h3>Genel yöntem</h3>
+<ol class="b">
+<li><code>rosnode list</code>: beklediğim node'lar var mı?</li>
+<li><code>rostopic hz</code>: veri akıyor mu (<code>/scan</code>, <code>/odom</code>, kamera)?</li>
+<li><code>rqt_graph</code>: bağlantı beklediğim yerde mi?</li>
+<li><code>rosrun tf view_frames</code>: TF ağacı tam mı?</li>
+<li>RViz'de sensörü, haritayı, costmap'i, planı üst üste göster; sorun çoğu zaman <em>görünür</em>.</li>
+<li>Terminal çıktısındaki <span class="tag2">WARN</span> ve <span class="tag2">ERROR</span> satırlarını oku: çoğunlukla nedeni söylerler.</li>
+<li>Hâlâ çözemediysen kaydı al (<a href="#rosbag">rosbag</a>) ve sorunu robotsuz analiz et.</li>
+</ol>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="ref-yardimci-paketler.html"><small>← Önceki</small>twist_mux ve ira_laser_tools</a><a class="next" href="referans.html"><small>Sonraki →</small>Sözlük ve dosya düzeni</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Görev ve docking · ROS AMR Wiki</title>
+<meta name="description" content="Navigasyon &quot;şu noktaya git&quot; der; görev katmanı ise &quot;sırayla şu noktalara git, orada şunu yap, hata olursa şöyle davran&quot; der. Burada robotun asıl işi tanımlanır: devriye, ">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg cur"><a href="gorev-ve-docking.html" aria-current="page">Görev ve docking</a><ul class="sub"><li><a href="#gorev">Görev katmanı</a></li><li><a href="#docking">Docking</a></li><li><a href="#twist-mux">Komut kaynaklarını yönetmek</a></li></ul></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">B · AMR yığını</p><h1>Görev ve docking</h1></header>
+<section id="gorev">
+<h2>Görev katmanı</h2>
+<dl class="pkg">
+<div><dt>Paketler</dt><dd><code>actionlib</code>, <code>move_base_msgs</code>, <code>smach</code>, <code>smach_ros</code></dd></div>
+<div><dt>Kendi yazdığın</dt><dd>görev node'u (bu sayfada <code>mission_node</code>), waypoint YAML'ı</dd></div>
+</dl>
+<p>Navigasyon "şu noktaya git" der; <strong>görev katmanı</strong> ise "sırayla şu noktalara git, orada şunu yap, hata olursa şöyle davran" der. Burada robotun asıl <em>işi</em> tanımlanır: devriye, teslimat, şarj.</p>
+
+<h3>Waypoint'ler</h3>
+<p>Waypoint'ler <code>map</code> çerçevesinde bir konum (<code>x, y</code>) ve yön (<code>yaw</code>, radyan) olarak tanımlanır. Bunları kodun içine gömmek yerine YAML dosyasına koy ki kodu değiştirmeden düzenleyebilesin:</p>
+<pre><code># myrobot_mission/config/waypoints.yaml (örnek)
+waypoints:
+  A: {x: 4.0,  y: 2.5,  yaw: 1.57}
+  B: {x: 18.0, y: -3.0, yaw: 3.14}</code></pre>
+
+<h3>move_base'e hedef göndermek</h3>
+<pre><code>import math, rospy, actionlib
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from tf.transformations import quaternion_from_euler
+from geometry_msgs.msg import Quaternion
+
+def make_goal(x, y, yaw):
+    goal = MoveBaseGoal()
+    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.stamp = rospy.Time.now()
+    goal.target_pose.pose.position.x = x
+    goal.target_pose.pose.position.y = y
+    goal.target_pose.pose.orientation = Quaternion(*quaternion_from_euler(0, 0, yaw))
+    return goal</code></pre>
+<p>Yön ROS'ta <strong>quaternion</strong> ile tutulur; <code>quaternion_from_euler</code> "yaw" açısını buna çevirir.</p>
+
+<h3>Sağlam bir devriye döngüsü</h3>
+<p>Basit bir "hedefe git, sonrakine geç" döngüsü ilk denemede çalışır ama gerçek hayatta takılır. Sağlam bir döngü şu sorulara cevap verir:</p>
+<figure>
+<pre class="mermaid">flowchart TD
+  S(["sıradaki waypoint"]) --> G["goal gönder (deneme n/3)"]
+  G --> W{"süre içinde bitti mi?"}
+  W -->|hayır| C["goal'u iptal et"]
+  W -->|evet| ST{"durum SUCCEEDED mı?"}
+  ST -->|hayır| C
+  ST -->|evet| A{"AMCL konumu hedefe yakın mı?"}
+  A -->|hayır| R{"deneme hakkı var mı?"}
+  C --> R
+  R -->|evet| G
+  R -->|hayır| SKIP["hata logla, bu noktayı atla"]
+  A -->|evet| OK["ulaşıldı"]
+  OK --> NEXT["indeksi ilerlet"]
+  SKIP --> NEXT
+  NEXT --> S</pre>
+<figcaption><b>Sağlam waypoint döngüsü.</b> Başarısız olsa bile görev durmaz; nokta atlanır ve bir sonrakine geçilir.</figcaption>
+</figure>
+<ul class="b">
+<li><strong>Mesafeye göre timeout.</strong> Sabit 60 sn, uzak noktalarda robot hâlâ yolda iken tetiklenir. Onun yerine <code>max(60, mesafe / ortalama_hız × 1,5)</code> gibi bir hesap kullan.</li>
+<li><strong>Varışı doğrula.</strong> <code>move_base</code> "başardı" dese bile robotun <code>/amcl_pose</code> konumunun hedefe gerçekten yakın olduğunu (ör. 1 m içinde) kendin kontrol etmek ek bir güvence sağlar; özellikle hedef toleransını gevşek verdiysen ya da lokalizasyona tam güvenmiyorsan işe yarar.</li>
+<li><strong>Yeniden dene ve pes et.</strong> Sınırlı sayıda dene; başarısızsa noktayı atla ya da görevi askıya al. Sonsuza dek denemek robotu yolu kapalı bir hedefe kilitler.</li>
+</ul>
+
+<h3>Durum makinesi (SMACH)</h3>
+<p>İş akışı büyüdükçe iç içe <code>if</code>'ler okunmaz hale gelir. <strong>Durum makinesi</strong> akışı adlandırılmış durumlar ve geçişler olarak yazdırır. ROS 1'de klasik araç <strong>SMACH</strong>'tır: her durumun adlandırılmış <em>sonuçları</em> (outcome) vardır ve bir geçiş tablosu hangi sonuçta hangi duruma gidileceğini söyler.</p>
+<figure>
+<pre class="mermaid">flowchart LR
+  GA["GOTO_A"] -->|succeeded| DA["DOCK_A"]
+  GA -->|aborted| RA["RETRY_A"]
+  RA -->|retry| GA
+  DA --> BA["BACKUP_A"]
+  BA --> GB["GOTO_B"]
+  GB -->|succeeded| DB["DOCK_B"]
+  DB --> BB["BACKUP_B"]
+  BB --> GA</pre>
+<figcaption><b>Örnek görev döngüsü.</b> A'ya git → yanaş → geri çık → B'ye git → yanaş → geri çık → tekrar. Başarısız bir gidiş, sınırlı sayıda yeniden denenir (B tarafındaki aynı hata yolu sadelik için çizilmedi).</figcaption>
+</figure>
+<p>Durum yazmak, <code>userdata</code>, <code>move_base</code>'i <code>SimpleActionState</code> ile çağırmak, pil izleme için paralel durumlar, <code>smach_viewer</code> ile izleme ve test edilmiş tam bir görev düğümü için ayrı rehbere bak: <a href="smach.html#smach">Durum makinesi (SMACH)</a>. Durum makinesine alternatif olarak <strong>davranış ağaçları</strong> (<code>py_trees</code>, BehaviorTree.CPP) da yaygındır; çok dallı, öncelikli davranışlarda daha esnektir.</p>
+
+<h4><code>mission_node</code> arayüzü (örnek)</h4>
+<div class="tw"><table><thead><tr><th>Ad</th><th>Yön</th><th>Tür</th></tr></thead><tbody>
+<tr><td><code>move_base</code></td><td>action istemcisi</td><td><code>move_base_msgs/MoveBaseAction</code></td></tr>
+<tr><td><code>dock</code></td><td>action istemcisi</td><td><code>myrobot_msgs/DockAction</code></td></tr>
+<tr><td><code>/amcl_pose</code></td><td>abone</td><td><code>geometry_msgs/PoseWithCovarianceStamped</code></td></tr>
+<tr><td><code>cmd_vel_dock</code></td><td>yayın (geri çıkış için; doğrudan <code>/cmd_vel</code>'e değil, <a href="#twist-mux">twist_mux</a> girişine)</td><td><code>geometry_msgs/Twist</code></td></tr>
+</tbody></table></div>
+</section>
+
+<section id="docking">
+<h2>Docking</h2>
+<dl class="pkg">
+<div><dt>Paketler</dt><dd><code>cv_bridge</code>, OpenCV (<code>python3-opencv</code>), <code>actionlib</code></dd></div>
+<div><dt>Kendi yazdığın</dt><dd><code>docking_node</code> · <code>dock</code> action'ı (<code>myrobot_msgs/DockAction</code>)</dd></div>
+<div><dt>Girdi</dt><dd><code>/camera/image_raw</code></dd></div>
+<div><dt>Çıktı</dt><dd><code>cmd_vel_dock</code> (twist_mux girişi), <code>/docking/mask</code> (hata ayıklama)</dd></div>
+</dl>
+<p><em>Docking</em>, robotun bir istasyona (şarj, teslim noktası, konveyör) <strong>hassas</strong> yanaşmasıdır. Haritada bir nokta hedeflemek burada yetmez: birkaç santimetrelik hata bağlantıyı bozar. Bu yüzden son yaklaşma, hedefi doğrudan gören bir <strong>algılama</strong> ile yapılır.</p>
+
+<h3>Yaygın yaklaşımlar</h3>
+<div class="tw"><table><thead><tr><th>Yöntem</th><th>Nasıl çalışır</th><th>Artı / eksi</th></tr></thead><tbody>
+<tr><td>Renkli şerit takibi</td><td>Zemindeki şeridi kamerayla bulur, ortalar</td><td>Ucuz, basit; ışığa ve zemine duyarlı</td></tr>
+<tr><td>Fiducial etiket (AprilTag)</td><td>İstasyondaki etiketin konumunu hesaplar (<code>apriltag_ros</code>)</td><td>Hassas, konum bilgisi verir; kamera görüşü ve ışık gerekir</td></tr>
+<tr><td>Lidar yansıtıcı / V şekli</td><td>İstasyondaki tanınabilir bir şekli lidarla arar</td><td>Işıktan bağımsız; şekil tasarımı gerekir</td></tr>
+<tr><td>IR işaret / temas</td><td>Kızılötesi verici veya fiziksel kılavuz</td><td>Basit ve sağlam; donanım gerektirir</td></tr>
+</tbody></table></div>
+<p>Aşağıdaki anlatım <strong>renkli şerit takibi</strong> üzerinedir; çünkü konuları (görüntü işleme + geri besleme kontrolü) tek başına öğretir. Diğer yöntemlerde algı farklıdır, ama yapı aynıdır: <em>algıla → hatayı hesapla → hız komutu üret → bitiş koşulunu denetle</em>.</p>
+
+<h3>Görüntüden hıza</h3>
+<figure>
+<pre class="mermaid">flowchart LR
+  IMG["kamera karesi"] --> HSV["BGR → HSV"]
+  HSV --> MASK["renk maskesi (inRange)"]
+  MASK --> CNT["en büyük kontur"]
+  CNT -->|"alan yeterli"| CX["ağırlık merkezi cx"]
+  CX --> P["açısal hız = −kp × (cx − genişlik/2)"]
+  P --> CMD["/cmd_vel"]
+  CNT -->|"alan çok küçük"| LOST["şerit görünmüyor"]
+  LOST -->|"daha önce görüldü"| DONE["şerit bitti: dur"]
+  LOST -->|"hiç görülmedi"| SCAN["yerinde dön, süre sınırlı"]</pre>
+<figcaption><b>Docking boru hattı.</b> Şerit kayboluyorsa iki yorum var: daha önce görülmüşse "istasyona vardım, şerit kamera altında kaldı"; hiç görülmemişse "şeridi bulamadım, etrafa bakayım".</figcaption>
+</figure>
+<pre><code>hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+mask = cv2.inRange(hsv, lower, upper)                     # sadece hedef renk beyaz kalır
+contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)   # OpenCV 4 (Noetic'te 4.2): 2 değer döner
+if not contours:                                          # şerit hiç görünmüyor
+    ...
+largest = max(contours, key=cv2.contourArea)
+m = cv2.moments(largest)
+cx = m["m10"] / m["m00"]                                  # şeridin yatay merkezi</code></pre>
+
+<h3>Ana fikirler</h3>
+<ul class="b">
+<li><strong>HSV rengi.</strong> Renk tespiti için RGB yerine <em>HSV</em> (ton, doygunluk, parlaklık) kullanılır; ışık değişse bile "mavi" ton aynı kalır. Eşikleri <strong>gerçek kameradan ölçmelisin</strong>: örnek kareyi kaydet, hedef bölgenin HSV değerlerine bak, aralığı bunlara göre kur. Başka bir projeden ya da örnekten alınmış bir eşik senin kamerandaki ışıkta çalışmaz.</li>
+<li><strong>Oransal (P) kontrol.</strong> Şeridin merkezi görüntünün ortasından ne kadar sapmışsa robot o oranda döner: <code>açısal = −kp × (cx − genişlik/2)</code>. Örneğin <code>kp = 0,006</code>, görüntü 640 piksel, şerit merkezi <code>cx = 400</code> ise hata 80 piksel, açısal hız −0,48 rad/s (sağa dön). Sonucu bir üst sınırda (ör. ±0,6 rad/s) kırp. İleri hızı düşük ve sabit tut (ör. 0,15 m/s). Yalnızca P yetmezse (örneğin robot hep bir yana sapıyorsa) integral (I) ve türev (D) terimleri eklenir: <strong>PID</strong>.</li>
+<li><strong>Gürültü elemesi.</strong> Küçük konturları (tek tük renkli lekeler) şerit sayma; bir minimum alan eşiği koy.</li>
+<li><strong>Bitiş koşulu.</strong> Belirle: şerit görüşten çıkınca mı, kontur görüntünün belli bir oranını kaplayınca mı, yoksa bir mesafe sensörü belli bir değere inince mi "vardım" diyeceksin? Birden fazla koşul birleştirmek daha sağlamdır.</li>
+<li><strong>Tarama ve zaman aşımı.</strong> Şerit hiç görülmezse yavaşça yerinde dön; ama <strong>süre sınırı koy</strong> (tam tur için 2π / dönme hızı) ve başarısızlık bildir. Sonsuz dönen robot kabul edilemez.</li>
+</ul>
+
+<h3>Action sunucusu olarak paketlemek</h3>
+<p>Docking'i tek başına çalışan bir script yerine bir <strong>action sunucusu</strong> yaparsan görev katmanı onu <code>send_goal</code> ile çağırabilir, sonuca bakabilir ve gerekirse iptal edebilir. Sunucu iskeleti için bkz. <a href="ref-tf-actionlib.html#actionlib-ref">actionlib referansı</a>. Sonuç mesajı (<code>success</code>, <code>message</code>) görev katmanına hangi yolu izleyeceğini söyler:</p>
+<div class="tw"><table><thead><tr><th>Durum</th><th><code>success</code></th><th><code>message</code> (örnek)</th></tr></thead><tbody>
+<tr><td>Şerit görüldü, sonra görüşten çıktı</td><td><code>true</code></td><td>"Şerit bitti, docking tamamlandı."</td></tr>
+<tr><td>Tarama süresince şerit hiç bulunamadı</td><td><code>false</code></td><td>"Şerit bulunamadı."</td></tr>
+<tr><td>İstemci goal'u iptal etti</td><td><code>false</code> (preempted)</td><td>"İptal edildi."</td></tr>
+</tbody></table></div>
+<h4>docking_node parametreleri (örnek)</h4>
+<div class="tw"><table><thead><tr><th>Parametre</th><th class="n">Örnek</th><th>Anlamı</th></tr></thead><tbody>
+<tr><td><code>hsv_lower</code> / <code>hsv_upper</code></td><td class="n">[100,60,40] / [140,255,100]</td><td>HSV eşikleri (kendi kameranda ölç)</td></tr>
+<tr><td><code>forward_speed</code></td><td class="n">0,15</td><td>İlerleme hızı (m/s)</td></tr>
+<tr><td><code>kp</code></td><td class="n">0,006</td><td>P kazancı (rad/s başına piksel)</td></tr>
+<tr><td><code>max_angular</code></td><td class="n">0,6</td><td>Dönüş hızı sınırı (rad/s)</td></tr>
+<tr><td><code>min_area</code></td><td class="n">300</td><td>Şerit sayılacak en küçük alan (piksel)</td></tr>
+<tr><td><code>search_speed</code> / <code>search_timeout</code></td><td class="n">0,4 / 16</td><td>Tarama dönüş hızı (rad/s) ve süre sınırı (sn)</td></tr>
+</tbody></table></div>
+<h3>Yanaşma ve geri çıkış</h3>
+<p>Tipik bir istasyon döngüsü üç adımdır: (1) <code>move_base</code> ile istasyonun <strong>ön noktasına</strong> git (yaklaşık olarak, birkaç santimetre hata kabul edilebilir); (2) docking action'ı ile son yaklaşmayı yap; (3) iş bitince <strong>geri çık</strong>: bir süre sabit yavaş hızla geri git (ör. en az 1 m), sonra navigasyonu yeniden devral. Geri çıkarken robot kör gider; bu yüzden hız düşük tutulur ve arkanın boş olduğunun garantisi istasyon tasarımından gelir.</p>
+<div class="call try"><b>Dene: robot neyi görüyor?</b>
+<p>Docking çalışırken <code>rosrun rqt_image_view rqt_image_view</code> aç ve <code>/docking/mask</code>'ı seç. Beyaz bölge "hedef renk" bulunan yerdir. Şerit maskede görünmüyorsa robot dönüp duruyor demektir; HSV eşiklerini ya da kameranın açısını ayarla.</p></div>
+</section>
+
+<section id="twist-mux">
+<h2>Komut kaynaklarını yönetmek</h2>
+<p>Bir AMR'ın tekerleklerine komut gönderebilecek <strong>birçok kaynak</strong> vardır: navigasyon, docking, operatörün klavyesi/joystick'i, güvenlik sistemi. Hepsi doğrudan <code>/cmd_vel</code>'e yazarsa komutlar birbirine karışır; robot titrer ya da beklenmedik hareket eder.</p>
+<p>Standart çözüm: her kaynak <em>kendi topic'ine</em> yazar, bir <strong>seçici</strong> (<code>twist_mux</code>) önceliğe göre birini seçip <code>/cmd_vel</code>'e iletir. Bir kaynak susarsa (süre aşımı) bir alttaki öncelik devralır.</p>
+<figure>
+<pre class="mermaid">flowchart LR
+  NAV["move_base: /cmd_vel_nav (öncelik 10)"] --> MUX["twist_mux"]
+  DOCK["docking_node: /cmd_vel_dock (öncelik 20)"] --> MUX
+  TELE["teleop: /cmd_vel_teleop (öncelik 100)"] --> MUX
+  MUX -->|"/cmd_vel"| ROBOT["robot sürücüsü"]</pre>
+<figcaption><b>Komut seçici.</b> Operatör klavyeyi kullandığı anda navigasyonu geçersiz kılar; bıraktığında (timeout sonrası) navigasyon geri devralır.</figcaption>
+</figure>
+<pre><code># twist_mux config (örnek)
+topics:
+- name: navigation
+  topic: cmd_vel_nav
+  timeout: 0.5
+  priority: 10
+- name: docking
+  topic: cmd_vel_dock
+  timeout: 0.5
+  priority: 20
+- name: teleop
+  topic: cmd_vel_teleop
+  timeout: 0.5
+  priority: 100</code></pre>
+<p>Launch'ta seçici şöyle başlatılır:</p>
+<pre><code>&lt;node pkg="twist_mux" type="twist_mux" name="twist_mux"&gt;
+  &lt;rosparam file="$(find myrobot_navigation)/param/twist_mux.yaml" command="load"/&gt;
+  &lt;remap from="cmd_vel_out" to="cmd_vel"/&gt;
+&lt;/node&gt;</code></pre>
+<p><code>move_base</code>'in çıkışını <code>cmd_vel_nav</code>'e, <code>docking_node</code>'unkini <code>cmd_vel_dock</code>'e <em>remap</em> edersin; <code>twist_mux</code>'un çıkışı (varsayılan adı <code>cmd_vel_out</code>) da <code>/cmd_vel</code>'e remap edilir. Öncelik değeri 0–255 arasındadır; büyük olan kazanır. Bir giriş <code>timeout</code> süresi boyunca sessiz kalırsa seçimden çıkar ve varsa bir alttaki öncelik devralır. Hiçbir giriş kalmazsa <code>twist_mux</code> <strong>sıfır hız yayınlamaz, susar</strong>; robotun durması sürücünün kendi komut zaman aşımına bağlıdır. Sürücünde böyle bir zaman aşımı yoksa çıkışa bir <a href="pratik.html#log-tanilama">watchdog</a> ekle.</p>
+<p><code>twist_mux</code> ayrıca <strong>kilitleri</strong> (<code>locks</code>) destekler: <code>std_msgs/Bool</code> tipinde bir topic'e <code>true</code> yayınlandığında, önceliği kilidinkinden düşük olan hız girdileri engellenir. <code>timeout</code>'u 0'dan büyük bir kilit, o süre boyunca mesaj alamazsa da devreye girer; yani kilidi yayınlayan node çökerse robot serbest kalmaz. Kilit de sıfır hız yayınlamaz, yalnızca girdileri keser; bu yüzden "duraklat" düğmesi için yeterli olsa da robotun durması yine sürücünün zaman aşımına bağlıdır. Ancak yazılım acil durdurması, donanım acil durdurmasının <strong>yerine geçmez</strong> (bkz. <a href="pratik.html#gercek-robot">Simülasyondan gerçeğe</a>).</p>
+<p><code>twist_mux</code>'un tüm parametreleri için: <a href="ref-yardimci-paketler.html#twist-mux-ref">twist_mux referansı</a>.</p>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="harita-ve-navigasyon.html"><small>← Önceki</small>Harita ve navigasyon</a><a class="next" href="smach.html"><small>Sonraki →</small>Durum makinesi (SMACH)</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/mermaid.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

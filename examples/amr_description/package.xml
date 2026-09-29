@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>amr_description</name>
+  <version>0.1.0</version>
+  <description>Örnek AMR: URDF/xacro modeli ve görselleştirme</description>
+  <maintainer email="kullanici@example.com">Kullanici</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>joint_state_publisher_gui</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>ira_laser_tools</exec_depend>
+</package>

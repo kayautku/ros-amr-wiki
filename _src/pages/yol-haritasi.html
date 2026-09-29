@@ -1,0 +1,134 @@
+<section id="yol-haritasi">
+<h2>Öğrenme yol haritası</h2>
+<p>ROS'ta yeni başlayanların en sık düştüğü tuzak, her şeyi aynı anda öğrenmeye çalışmaktır: URDF, TF, navigasyon ayarı ve Python'u aynı hafta. Aşağıdaki sıra, <strong>her aşamanın bir öncekine dayanması</strong> için kurulmuştur. Her aşamada bir mini proje ve "bitti sayılır" ölçütü var; ölçütü sağlamadan sonraki aşamaya geçme.</p>
+
+<figure>
+<div class="fig-in"><svg class="dgm" viewBox="0 0 800 310" role="img" aria-label="Sekiz aşamalı öğrenme planının hafta ölçekli zaman çizelgesi: hazırlık 1 hafta, ROS çekirdeği 2, paketler 1, simülasyon 2 ila 3, algı ve kontrol 2, navigasyon 3 ila 4, görev katmanı 2 ila 3 hafta; sağlamlık sürekli." style="min-width:640px">
+<g class="grid">
+<line x1="190" y1="26" x2="190" y2="274"/><line x1="244" y1="26" x2="244" y2="274"/><line x1="298" y1="26" x2="298" y2="274"/><line x1="352" y1="26" x2="352" y2="274"/><line x1="406" y1="26" x2="406" y2="274"/><line x1="460" y1="26" x2="460" y2="274"/><line x1="514" y1="26" x2="514" y2="274"/><line x1="568" y1="26" x2="568" y2="274"/><line x1="622" y1="26" x2="622" y2="274"/><line x1="676" y1="26" x2="676" y2="274"/><line x1="730" y1="26" x2="730" y2="274"/>
+</g>
+<g class="s" text-anchor="middle">
+<text class="s" x="190" y="18">0</text><text class="s" x="244" y="18">2</text><text class="s" x="298" y="18">4</text><text class="s" x="352" y="18">6</text><text class="s" x="406" y="18">8</text><text class="s" x="460" y="18">10</text><text class="s" x="514" y="18">12</text><text class="s" x="568" y="18">14</text><text class="s" x="622" y="18">16</text><text class="s" x="676" y="18">18</text><text class="s" x="730" y="18">20 hafta</text>
+</g>
+<g text-anchor="end">
+<text x="180" y="47">0 · Hazırlık</text>
+<text x="180" y="77">1 · ROS çekirdeği</text>
+<text x="180" y="107">2 · Paketler</text>
+<text x="180" y="137">3 · Model ve simülasyon</text>
+<text x="180" y="167">4 · Algı ve kontrol</text>
+<text x="180" y="197">5 · Harita ve navigasyon</text>
+<text x="180" y="227">6 · Görev katmanı</text>
+<text x="180" y="257">7 · Sağlamlık, gerçek robot</text>
+</g>
+<rect class="bar" x="190" y="34" width="27" height="18"/><text class="s" x="224" y="47">1 hf</text>
+<rect class="bar" x="217" y="64" width="54" height="18"/><text class="s" x="278" y="77">2 hf</text>
+<rect class="bar" x="271" y="94" width="27" height="18"/><text class="s" x="305" y="107">1 hf</text>
+<rect class="bar" x="298" y="124" width="67.5" height="18"/><text class="s" x="372" y="137">2–3 hf</text>
+<rect class="bar" x="365.5" y="154" width="54" height="18"/><text class="s" x="426" y="167">2 hf</text>
+<rect class="bar" x="419.5" y="184" width="94.5" height="18"/><text class="s" x="521" y="197">3–4 hf</text>
+<rect class="bar" x="514" y="214" width="67.5" height="18"/><text class="s" x="588" y="227">2–3 hf</text>
+<rect class="bar2" x="581.5" y="244" width="67.5" height="18"/><text class="s" x="656" y="257">sürekli</text>
+</svg></div>
+<figcaption><b>Kaba zaman çizelgesi.</b> Haftada 6–8 saat çalışan ve yazılım yazmaya yabancı olmayan biri için tahmindir; uzunluk çubukları hafta ölçeğindedir. Dolu çubuklar sıralı çekirdek aşamalardır, açık renkli 7. aşama projeyle birlikte sürer. Programlamaya yeniysen 0. aşamaya daha çok süre ayır.</figcaption>
+</figure>
+
+<div class="stages">
+
+<div class="stg"><div class="k"><b>0</b><span>Hazırlık<br>~1 hafta</span></div><div class="v">
+<h3>Linux, Python ve git</h3>
+<p class="g">ROS'un kendisi kolay; ortam (terminal, ortam değişkenleri, Python) yeni başlayanı yorar.</p>
+<dl>
+<dt>Öğren</dt><dd>Terminalde gezinme (<code>cd</code>, <code>ls</code>, <code>grep</code>, <code>chmod</code>), ortam değişkenleri ve <code>source</code>, bir metin editörü (VS Code ya da nano). Python 3: fonksiyon, sınıf, liste/sözlük, <code>import</code>. <code>git</code>: <code>init</code>, <code>add</code>, <code>commit</code>.</dd>
+<dt>Yap</dt><dd>Bir Python dosyası yaz: bir sınıf, iki metot, komut satırı argümanı. Git'e commit et.</dd>
+<dt>Bitti sayılır</dt><dd>Terminalden bir script'i çalıştırabiliyor, bir hatanın satırını okuyup bulabiliyor ve değişikliğini commit'leyebiliyorsun.</dd>
+</dl></div></div>
+
+<div class="stg"><div class="k"><b>1</b><span>ROS çekirdeği<br>~2 hafta</span></div><div class="v">
+<h3>Node, topic, servis, parametre, launch</h3>
+<p class="g">ROS'un dilini öğren: her şey birbiriyle konuşan node'lardır.</p>
+<dl>
+<dt>Öğren</dt><dd><a href="#kurulum">Kurulum</a>, <a href="#node-master">node ve master</a>, <a href="#topic">topic ve mesaj</a>, <a href="#servis">servis</a>, <a href="#param">parametre</a>, <a href="#launch">launch</a>, <a href="#araclar">komut satırı araçları</a>.</dd>
+<dt>Yap</dt><dd><code>turtlesim</code>'i klavyeyle sür; sonra kendi Python node'unla <code>/turtle1/cmd_vel</code>'e yazarak kaplumbağayı bir kare çizdir. Kendi <code>publisher</code>/<code>subscriber</code> çiftini yaz.</dd>
+<dt>Bitti sayılır</dt><dd><code>rqt_graph</code>'a bakıp kendi kurduğun node'ların bağlantısını açıklayabiliyor ve bir node'un davranışını parametreyle değiştirebiliyorsun.</dd>
+</dl></div></div>
+
+<div class="stg"><div class="k"><b>2</b><span>Paketler<br>~1 hafta</span></div><div class="v">
+<h3>Workspace, paket, özel mesajlar</h3>
+<p class="g">Kodunu düzenli bir yapıya oturt; sonraki her şey paketler üzerinde yaşar.</p>
+<dl>
+<dt>Öğren</dt><dd><a href="#catkin">catkin workspace</a>, <code>package.xml</code>, <code>CMakeLists.txt</code>, özel <code>.msg</code>/<code>.srv</code>/<code>.action</code> tanımı, <code>rosdep</code>, <a href="#action">action</a>.</dd>
+<dt>Yap</dt><dd>İki paketli bir workspace kur: birinde özel mesaj, diğerinde onu kullanan node'lar. Bir action sunucusu ve istemcisi yaz.</dd>
+<dt>Bitti sayılır</dt><dd>Sıfırdan boş bir workspace açıp <code>catkin_make</code> ile derleyebiliyor ve "paket bulunamadı" hatasının nedenini kendin çözebiliyorsun.</dd>
+</dl></div></div>
+
+<div class="stg"><div class="k"><b>3</b><span>Model ve simülasyon<br>~2–3 hafta</span></div><div class="v">
+<h3>URDF, TF, Gazebo, RViz</h3>
+<p class="g">Robotu bilgisayarın içinde kur; donanımın yokken bile geliştirmeye devam edebilirsin.</p>
+<dl>
+<dt>Öğren</dt><dd><a href="#tf">TF</a>, <a href="#robot">URDF/xacro</a>, <code>robot_state_publisher</code>, <a href="#simulasyon">Gazebo</a> eklentileri (diff drive, lidar, kamera), <a href="#rviz">RViz</a>.</dd>
+<dt>Yap</dt><dd>Kutu gövdeli, iki tekerlekli bir robot çiz. Gazebo'da klavyeyle sür (<code>teleop_twist_keyboard</code>). Lidar ve kamerayı RViz'de göster.</dd>
+<dt>Bitti sayılır</dt><dd>Robotun TF ağacını çizip her bağın kim tarafından yayınlandığını söyleyebiliyor, <code>/cmd_vel</code> gönderince robotun neden döndüğünü anlatabiliyorsun.</dd>
+</dl></div></div>
+
+<div class="stg"><div class="k"><b>4</b><span>Algı ve kontrol<br>~2 hafta</span></div><div class="v">
+<h3>Sensör verisini işle, geri besleme kur</h3>
+<p class="g">Navigasyon yığınını kullanmadan önce robotu <em>kendin</em> sürmeyi öğren.</p>
+<dl>
+<dt>Öğren</dt><dd><a href="#sensorler">LaserScan</a> işleme, OpenCV ve <code>cv_bridge</code>, odometri, P/PID kontrol, <a href="#docking">renk temelli şerit takibi</a>.</dd>
+<dt>Yap</dt><dd>İki mini proje: (1) önündeki engele 1 m kala duran, sonra yön değiştiren robot; (2) zemindeki renkli bir çizgiyi takip eden robot.</dd>
+<dt>Bitti sayılır</dt><dd>Sensör → karar → <code>/cmd_vel</code> döngüsünü kodda kurabiliyor ve kazancı (<code>kp</code>) değiştirince davranışın nasıl değiştiğini açıklayabiliyorsun.</dd>
+</dl></div></div>
+
+<div class="stg"><div class="k"><b>5</b><span>Harita ve navigasyon<br>~3–4 hafta</span></div><div class="v">
+<h3>SLAM, AMCL, move_base</h3>
+<p class="g">AMR'ı AMR yapan kısım: harita, konum ve yol planı. En çok ayar isteyen aşama.</p>
+<dl>
+<dt>Öğren</dt><dd><a href="#slam">SLAM</a> ile harita çıkarma, <a href="#lokalizasyon">AMCL</a>, <a href="#navigasyon">move_base</a>, costmap, global/yerel planlayıcı, <a href="#hata-ayiklama">ayar ve hata ayıklama</a>.</dd>
+<dt>Yap</dt><dd>Simülasyon dünyasında SLAM ile harita çıkar ve kaydet. Sonra bu haritayla AMCL + move_base'i başlat, RViz'den "2D Nav Goal" ile robotu gezdir. Robotu dar bir kapıdan geçirmeyi başar.</dd>
+<dt>Bitti sayılır</dt><dd>Robot haritanın herhangi bir yerine güvenilir biçimde gidiyor; bir hata olduğunda önce hangi bileşenden (lokalizasyon, costmap, planlayıcı) şüphelenmen gerektiğini biliyorsun.</dd>
+</dl></div></div>
+
+<div class="stg"><div class="k"><b>6</b><span>Görev katmanı<br>~2–3 hafta</span></div><div class="v">
+<h3>Waypoint, durum makinesi, docking</h3>
+<p class="g">Robotu "hedefe git" komutundan "işi yap" seviyesine çıkar.</p>
+<dl>
+<dt>Öğren</dt><dd><a href="#gorev">move_base action istemcisi</a>, waypoint devriyesi, durum makinesi (<a href="#smach">SMACH</a> ya da davranış ağacı), <a href="#docking">docking</a>, <a href="#twist-mux">komut kaynaklarını yönetme</a>.</dd>
+<dt>Yap</dt><dd>A ile B arasında sonsuz devriye + her istasyonda docking + geri çıkış yapan bir görev döngüsü yaz. Hedefe ulaşılamazsa ne olacağını da tasarla.</dd>
+<dt>Bitti sayılır</dt><dd>Görev bir saat boyunca insan müdahalesi olmadan dönüyor; hata durumlarında (hedef kapalı, şerit yok) takılmak yerine belirlediğin davranışa geçiyor.</dd>
+</dl></div></div>
+
+<div class="stg"><div class="k"><b>7</b><span>Sağlamlık, gerçek robot<br>sürekli</span></div><div class="v">
+<h3>Kayıt, tanılama, güvenlik, donanım</h3>
+<p class="g">Sistemi "çalışıyor" halinden "güvenilir" haline getirir. Proje boyunca sürer.</p>
+<dl>
+<dt>Öğren</dt><dd><a href="#rosbag">rosbag</a>, <a href="#log-tanilama">log seviyeleri ve diagnostics</a>, <a href="#twist-mux">öncelikli komut yönetimi</a>, acil durdurma, <a href="#gercek-robot">gerçek sürücüler ve kalibrasyon</a>, ağ kurulumu, açılışta otomatik başlatma.</dd>
+<dt>Yap</dt><dd>Bir görev koşusunu bag'e kaydet, bag'den tekrar oynat ve hatayı yeniden üret. Robota bir <a href="#log-tanilama">watchdog</a> ekle: komut kesilirse dursun.</dd>
+<dt>Bitti sayılır</dt><dd>Bir arıza olduğunda "ne oldu?" sorusunu kayıttan cevaplayabiliyorsun; robot komut kaybolduğunda kendi kendine duruyor.</dd>
+</dl></div></div>
+
+
+</div>
+
+<h3>Nasıl çalışmalı?</h3>
+<ul class="b">
+<li><strong>Küçük adımla ilerle, her adımı simülasyonda çalıştır.</strong> Bir şeyi değiştir, çalıştır, gör. Aynı anda üç şeyi değiştirme; bozulduğunda nedenini bulamazsın.</li>
+<li><strong>Önce başkasının kodunu oku.</strong> <code>turtlesim</code>, <code>teleop_twist_keyboard</code> ve <code>move_base</code>'in launch/param dosyaları çok şey öğretir. Kendi ayarlarını sıfırdan yazmak yerine çalışan bir örneği değiştir.</li>
+<li><strong>Görselleştir.</strong> RViz, <code>rqt_graph</code> ve <code>rqt_image_view</code> ile sorunu çoğunlukla <em>görürsün</em>; log okuyarak aramak daha yavaştır.</li>
+<li><strong>Her şeyi git'e koy.</strong> Özellikle <code>src/</code> klasörünü; <code>build/</code> ve <code>devel/</code> üretilir, git'e girmez.</li>
+<li><strong>Bir sorunu tek başına 30–45 dakikadan fazla itme.</strong> Hata mesajını olduğu gibi arat (Robotics Stack Exchange, ROS Discourse, GitHub issue'ları); çoğu sorunu daha önce biri yaşamıştır.</li>
+</ul>
+
+<h3>Kaynaklar</h3>
+<div class="call"><b>wiki.ros.org erişilemiyorsa</b>
+<p>ROS wiki zaman zaman erişim korumasına takılıp kapanabiliyor. Aşama 5–7'de aradığın parametre/topic bilgisinin çoğu bu sitenin kendi <a href="ref-amcl-move-base.html">Paket referansı</a> bölümünde (AMCL, move_base, costmap_2d, gmapping, map_server, tf, actionlib, twist_mux, ira_laser_tools) zaten var; kaynak kodundan çıkarıldı ve Türkçe.</p></div>
+<div class="tw"><table><thead><tr><th>Kaynak</th><th>Ne için</th></tr></thead><tbody>
+<tr><td>ROS Wiki: "ROS/Tutorials" (wiki.ros.org)</td><td>Resmî başlangıç öğreticileri; aşama 1–2 için ana kaynak.</td></tr>
+<tr><td>"A Gentle Introduction to ROS", Jason M. O'Kane</td><td>Ücretsiz çevrimiçi, adım adım kitap; aşama 1–4.</td></tr>
+<tr><td>"Programming Robots with ROS", Quigley, Gerkey, Smart</td><td>Daha kapsamlı başvuru kitabı.</td></tr>
+<tr><td>Bu sitenin <a href="ref-amcl-move-base.html">Paket referansı</a> sayfaları</td><td>Aşama 5–6: AMCL, move_base, costmap_2d, gmapping, map_server, tf, actionlib, twist_mux, ira_laser_tools için tam parametre listeleri (Türkçe).</td></tr>
+<tr><td>"ROS Navigation Tuning Guide", Kaiyu Zheng</td><td>Navigasyon ayarı için pratik rehber.</td></tr>
+<tr><td>"Probabilistic Robotics", Thrun, Burgard, Fox</td><td>AMCL ve SLAM'in arkasındaki teori (ileri seviye).</td></tr>
+<tr><td>"Modern Robotics", Lynch, Park</td><td>Kinematik ve kontrol temeli.</td></tr>
+<tr><td>REP-103 ve REP-105 (ros.org/reps)</td><td>Birimler ve mobil robotlarda koordinat çerçevesi standardı; aşama 3.</td></tr>
+</tbody></table></div>
+</section>

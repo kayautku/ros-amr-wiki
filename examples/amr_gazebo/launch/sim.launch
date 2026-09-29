@@ -1,0 +1,31 @@
+<launch>
+  <!-- Kullanım: roslaunch amr_gazebo sim.launch [gui:=false] [x:=0 y:=0 yaw:=0] [merge_scans:=false] [odom_source:=encoder] -->
+  <arg name="gui" default="true"/>
+  <arg name="world" default="$(find amr_gazebo)/worlds/depo.world"/>
+  <arg name="x" default="0.0"/>
+  <arg name="y" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+  <arg name="merge_scans" default="true"/>
+  <!-- world: Gazebo'nun gerçek pozu (kayma yok, temiz haritalar). encoder: tekerlek sayımı (gerçek robota daha yakın, kayar). -->
+  <arg name="odom_source" default="world"/>
+
+  <!-- 1. Gazebo'yu dünyayla aç (use_sim_time otomatik true olur) -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world)"/>
+    <arg name="gui" value="$(arg gui)"/>
+  </include>
+
+  <!-- 2. URDF'i robot_description parametresine yükle -->
+  <param name="robot_description"
+         command="$(find xacro)/xacro $(find amr_description)/urdf/amr.urdf.xacro odom_source:=$(arg odom_source)"/>
+
+  <!-- 3. Robotu dünyaya yerleştir (gövde merkezi zeminden 0,175 m yüksekte durur; 0,2 ile hafifçe bırakılır) -->
+  <node name="spawn_amr" pkg="gazebo_ros" type="spawn_model" output="screen"
+        args="-urdf -param robot_description -model amr -x $(arg x) -y $(arg y) -z 0.2 -Y $(arg yaw)"/>
+
+  <!-- 4. Sabit ve tekerlek TF çerçevelerini yayınla -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+  <!-- 5. Üç lidarı tek /scan'de birleştir -->
+  <include file="$(find amr_description)/launch/lidar_merge.launch" if="$(arg merge_scans)"/>
+</launch>

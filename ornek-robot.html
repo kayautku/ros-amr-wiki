@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Örnek robot (geliştirme aşamasında) · ROS AMR Wiki</title>
+<meta name="description" content="Buradaki robot, sitenin geri kalanından bağımsız, henüz tamamlanmamış bir örnektir. URDF&#x27;i gerçek bir AMR&#x27;dan alındı ve Gazebo&#x27;da yüklenip sürülebildiği görüldü; ama hari">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg"><a href="iletisim.html">İletişim</a></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg cur"><a href="ornek-robot.html" aria-current="page">Örnek robot</a><ul class="sub"><li><a href="#ornek-robot">Örnek robot</a></li><li><a href="#ornek-urdf">Örnek robotun URDF&#x27;i</a></li><li><a href="#ornek-sim">Örnek robotun simülasyonu</a></li><li><a href="#ornek-navigasyon">Örnek robotun navigasyon ayarları</a></li><li><a href="#ornek-yapilacaklar">Yapılacaklar</a></li></ul></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">E · Örnek (geliştiriliyor)</p><h1>Örnek robot (geliştirme aşamasında)</h1></header>
+<section id="ornek-robot">
+<h2>Örnek robot</h2>
+<div class="call warn"><b>Bu sayfa geliştirme aşamasında</b>
+<p>Buradaki robot, sitenin geri kalanından bağımsız, <strong>henüz tamamlanmamış</strong> bir örnektir. URDF'i gerçek bir AMR'dan alındı ve Gazebo'da yüklenip sürülebildiği görüldü; ama haritalama, lokalizasyon ve navigasyon bu robotla <strong>uçtan uca doğrulanmadı</strong> ve bilinen açık sorunlar var (bkz. <a href="#ornek-yapilacaklar">Yapılacaklar</a>). Değerleri kendi projene kopyalamadan önce bu listeyi oku.</p></div>
+<p>Sitenin diğer sayfaları belirli bir robota bağlı değildir; kavramları ve paketleri genel olarak anlatır. Bu sayfa ise o kavramların <em>tek bir somut robotta</em> nasıl bir araya geldiğini gösterir: diferansiyel sürüşlü, üç 2D lidarlı ve aşağı bakan bir kameralı, depo tipi büyük bir AMR.</p>
+
+<h3>Dosyalar</h3>
+<p>Örneğin dosyaları sitenin <code>examples/</code> klasöründedir. Bir catkin workspace'inin <code>src/</code> klasörüne kopyalanıp derlenerek kullanılır.</p>
+<div class="tw"><table><thead><tr><th>Dosya</th><th>İçerik</th></tr></thead><tbody>
+<tr><td><code>examples/amr_description/urdf/amr.urdf.xacro</code></td><td>Robotun tam URDF'i</td></tr>
+<tr><td><code>examples/amr_description/launch/display.launch</code></td><td>Modeli Gazebo olmadan RViz'de gösterir</td></tr>
+<tr><td><code>examples/amr_description/launch/lidar_merge.launch</code></td><td>Üç lidarı tek <code>/scan</code>'de birleştirir</td></tr>
+<tr><td><code>examples/amr_gazebo/launch/sim.launch</code></td><td>Gazebo + dünya + robot + lidar birleştirme</td></tr>
+<tr><td><code>examples/amr_gazebo/worlds/depo.world</code></td><td>20 × 12 m'lik basit depo dünyası</td></tr>
+</tbody></table></div>
+<p>Navigasyon, docking ve görev paketleri (<code>amr_navigation</code>, <code>amr_docking</code>, <code>amr_mission</code>, <code>amr_msgs</code>) <strong>henüz yazılmadı</strong>; aşağıdaki navigasyon ayarları yalnızca YAML parçaları olarak verilmiştir.</p>
+</section>
+
+<section id="ornek-urdf">
+<h2>Örnek robotun URDF'i</h2>
+<p><code>amr.urdf.xacro</code>, <code>.xacro</code> uzantısı taşısa da xacro özelliği (makro, değişken) kullanmayan düz bir URDF'tir; her tekerlek, lidar ve caster elle yazılmıştır. Kök çerçeve <code>base_footprint</code>'tir, ayrı bir <code>base_link</code> <strong>yoktur</strong>. Gövde kutusu bu çerçeveden <code>z = 0,317</code> m yukarı kaydırılmıştır.</p>
+<pre><code>&lt;robot name="amr"&gt;
+
+  &lt;link name="base_footprint"&gt;
+    &lt;inertial&gt;
+      &lt;origin xyz="0 0 0.317" rpy="0 0 0"/&gt;
+      &lt;mass value="250.0"/&gt;
+      &lt;inertia ixx="45.0" ixy="0.0" ixz="0.0" iyy="75.0" iyz="0.0" izz="105.0"/&gt;
+    &lt;/inertial&gt;
+    &lt;collision&gt;
+      &lt;origin xyz="0 0 0.317" rpy="0 0 0"/&gt;
+      &lt;geometry&gt;&lt;box size="1.8 1.3 0.334"/&gt;&lt;/geometry&gt;
+    &lt;/collision&gt;
+    &lt;visual&gt;
+      &lt;origin xyz="0 0 0.317" rpy="0 0 0"/&gt;
+      &lt;geometry&gt;&lt;box size="1.8 1.3 0.334"/&gt;&lt;/geometry&gt;
+    &lt;/visual&gt;
+  &lt;/link&gt;
+
+  &lt;joint name="left_wheel_joint" type="continuous"&gt;
+    &lt;parent link="base_footprint"/&gt;
+    &lt;child link="left_wheel"/&gt;
+    &lt;origin xyz="0 0.5 0.15" rpy="0 0 0"/&gt;
+    &lt;axis xyz="0 1 0"/&gt;
+  &lt;/joint&gt;
+  …
+&lt;/robot&gt;</code></pre>
+
+<h3>Boyutlar ve sensörler</h3>
+<p>Değerler URDF'ten okunmuştur. Toplam kütle yaklaşık 270 kg (gövde 250 kg + tekerlekler, casterlar, kule ve sensörler).</p>
+<div class="tw"><table>
+<thead><tr><th>Parça</th><th>Konum (<code>base_footprint</code>'e göre)</th><th>Özellikler</th><th>Topic</th></tr></thead>
+<tbody>
+<tr><td>Gövde</td><td>merkez z +0,317</td><td>1,8 × 1,3 × 0,334 m kutu</td><td>—</td></tr>
+<tr><td>Sürüş tekerlekleri</td><td>y ±0,5 · z +0,15</td><td>yarıçap 0,15 m; tekerlekler arası 1,0 m</td><td>—</td></tr>
+<tr><td>4 × caster</td><td>x ±0,75 · y ±0,40 · z +0,10</td><td>küre, yarıçap 0,10 m, sürtünme 0</td><td>—</td></tr>
+<tr><td>Ön-sol lidar</td><td>x +0,90 · y +0,65 · z +0,317, +45° bakış</td><td>250° (±125°), 360 örnek, 0,15–12 m, 10 Hz</td><td><code>/scan_front_left</code></td></tr>
+<tr><td>Arka-sağ lidar</td><td>x −0,90 · y −0,65 · z +0,317, −135° bakış</td><td>250° (±125°), 360 örnek, 0,15–12 m, 10 Hz</td><td><code>/scan_rear_right</code></td></tr>
+<tr><td>Üst lidar</td><td>x −0,85 · y 0 · z +1,54 (kulenin üstünde)</td><td>360°, 720 örnek, 0,20–25 m, 15 Hz</td><td><code>/scan_top</code></td></tr>
+<tr><td>Kamera</td><td>x +0,95 · y 0 · z +0,484, 45° aşağı eğik</td><td>640 × 480, yatay görüş 80°, 30 Hz</td><td><code>/robot/camera/image_raw</code></td></tr>
+</tbody></table></div>
+<p>Robotta <strong>IMU yoktur</strong>. Köşedeki iki lidar gövdenin çevresini çapraz konumlardan birbirini tamamlayarak tarar; üstteki lidar gövdenin ve yükün üzerinden uzun menzille tam çevre tarar.</p>
+
+<h3>Tekerlek sürücüsü</h3>
+<p><code>libgazebo_ros_diff_drive.so</code> eklentisi şu değerlerle kullanılır: <code>wheelSeparation</code> 1,0, <code>wheelDiameter</code> 0,30, <code>robotBaseFrame</code> <code>base_footprint</code>, <code>odometryFrame</code> <code>odom</code>, <code>publishOdomTF</code> true. <code>odometrySource</code> yazılmadığı için varsayılan <code>world</code> kullanılır: odometri Gazebo'nun gerçek pozudur ve hiç kaymaz.</p>
+
+<h3>TF ağacı</h3>
+<figure>
+<pre class="mermaid">flowchart TD
+  map["map"] -->|"amcl"| odom["odom"]
+  odom -->|"diff_drive eklentisi"| base["base_footprint"]
+  base -->|"robot_state_publisher"| LW["left_wheel"]
+  base --> RW["right_wheel"]
+  base --> CS["4 × caster tekeri"]
+  base --> FL["front_left_lidar_link"]
+  base --> RR["rear_right_lidar_link"]
+  base --> TL["top_lidar_link"]
+  base --> KL["kule_link"]
+  base --> CAM["camera_link"]</pre>
+<figcaption><b>Örnek robotun TF ağacı.</b> Casterlar tek bir grup olarak gösterildi (gerçekte 4 ayrı çerçeve: <code>front_left_caster_wheel</code> vb.). Üst lidar URDF'te <code>kule_link</code>'e değil doğrudan <code>base_footprint</code>'e bağlıdır.</figcaption>
+</figure>
+<div class="call try"><b>Dene: modeli gör</b>
+<p><code>roslaunch amr_description display.launch</code> ile RViz ve <code>joint_state_publisher_gui</code> açılır. RViz'de <em>Fixed Frame</em>'i <code>base_footprint</code> yap, <code>RobotModel</code> ve <code>TF</code> ekle.</p></div>
+</section>
+
+<section id="ornek-sim">
+<h2>Örnek robotun simülasyonu</h2>
+<p><code>sim.launch</code>; Gazebo'yu <code>depo.world</code> ile açar, URDF'i yükler, robotu yerleştirir, <code>robot_state_publisher</code>'ı ve lidar birleştiriciyi başlatır:</p>
+<pre><code>roslaunch amr_gazebo sim.launch                  # GUI ile
+roslaunch amr_gazebo sim.launch gui:=false       # ekransız
+roslaunch amr_gazebo sim.launch merge_scans:=false   # lidar birleştirme olmadan</code></pre>
+<p>Launch dosyası bir <code>odom_source</code> argümanı da kabul eder, ancak URDF bu argümanı şu an <strong>kullanmıyor</strong>; değeri ne olursa olsun odometri <code>world</code> kalır (bkz. <a href="#ornek-yapilacaklar">Yapılacaklar</a>).</p>
+<h3>Lidar birleştirme ayarları</h3>
+<p><code>lidar_merge.launch</code>'taki <code>laserscan_multi_merger</code> ayarları:</p>
+<div class="tw"><table>
+<thead><tr><th>Ayar</th><th>Değer</th></tr></thead>
+<tbody>
+<tr><td><code>laserscan_topics</code></td><td><code>/scan_front_left /scan_rear_right /scan_top</code></td></tr>
+<tr><td><code>destination_frame</code></td><td><code>base_footprint</code></td></tr>
+<tr><td><code>scan_destination_topic</code> / <code>cloud_destination_topic</code></td><td><code>/scan</code> / <code>/merged_cloud</code></td></tr>
+<tr><td><code>angle_min</code> / <code>angle_max</code> / <code>angle_increment</code></td><td>−3,14159 / 3,14159 / 0,00872665 (720 ışın)</td></tr>
+<tr><td><code>range_min</code> / <code>range_max</code></td><td>0,15 / 25,0 m</td></tr>
+<tr><td><code>scan_time</code></td><td>0,1 sn</td></tr>
+</tbody></table></div>
+<p>Üst lidar (1,54 m) ile köşe lidarları (0,317 m) aynı düzlemde değildir. <code>ira_laser_tools</code> bunu hesaba katmaz; alçak engelleri yalnızca köşe lidarları, yüksek engelleri yalnızca üst lidar görür ve hepsi tek bir 2D taramaya yazılır.</p>
+</section>
+
+<section id="ornek-navigasyon">
+<h2>Örnek robotun navigasyon ayarları</h2>
+<p>Aşağıdaki değerler bu robotun gerçek donanımında kullanılan bir TEB konfigürasyonundan alındı. Simülasyonda bu robotla <strong>denenmedi</strong>.</p>
+<div class="tw"><table>
+<thead><tr><th>Dosya</th><th>Ayar</th><th class="n">Değer</th><th>Not</th></tr></thead>
+<tbody>
+<tr><td><code>costmap_common</code></td><td><code>footprint</code></td><td class="n">±0,95 × ±0,70 m</td><td>Tam boyut 1,9 × 1,4 m; gövdeden (1,8 × 1,3 m) her yönde 5 cm büyük.</td></tr>
+<tr><td></td><td><code>inflation_radius</code> / <code>cost_scaling_factor</code></td><td class="n">1,1 m / 2,5</td><td></td></tr>
+<tr><td></td><td><code>obstacle_range</code> / <code>raytrace_range</code></td><td class="n">2,5 / 3,5 m</td><td><code>/scan</code> kaynağı için.</td></tr>
+<tr><td><code>local_costmap</code></td><td>pencere</td><td class="n">16 × 16 m, 0,05 m</td><td><code>rolling_window: true</code></td></tr>
+<tr><td><code>move_base</code></td><td><code>controller_frequency</code> / <code>planner_frequency</code></td><td class="n">20 / 2 Hz</td><td></td></tr>
+<tr><td></td><td><code>planner_patience</code> / <code>controller_patience</code></td><td class="n">5 / 5 sn</td><td></td></tr>
+<tr><td>TEB</td><td><code>max_vel_x</code> / <code>max_vel_theta</code></td><td class="n">0,5 m/s / 0,3 rad/s</td><td></td></tr>
+<tr><td></td><td><code>acc_lim_x</code> / <code>acc_lim_theta</code></td><td class="n">0,8 m/s² / 0,2 rad/s²</td><td></td></tr>
+<tr><td></td><td><code>xy_goal_tolerance</code> / <code>yaw_goal_tolerance</code></td><td class="n">0,15 m / 0,1 rad</td><td></td></tr>
+</tbody></table></div>
+<pre><code># param/costmap_common.yaml
+footprint: [[0.95, 0.70], [0.95, -0.70], [-0.95, -0.70], [-0.95, 0.70]]
+robot_base_frame: base_footprint
+transform_tolerance: 0.2
+obstacle_layer:
+  observation_sources: scan
+  scan: {topic: /scan, data_type: LaserScan, marking: true, clearing: true,
+         obstacle_range: 2.5, raytrace_range: 3.5}
+inflation_layer:
+  inflation_radius: 1.1
+  cost_scaling_factor: 2.5</code></pre>
+<div class="call warn"><b>TEB'in ayak izi modeli</b>
+<p>TEB'in <code>footprint_model</code> varsayılanı <code>point</code>'tir: robot, engellerden yalnızca <code>min_obstacle_dist</code> kadar uzak durması gereken bir nokta gibi planlanır. 1,8 m'lik bir gövdede bu yetersizdir; <code>polygon</code> ya da <code>line</code> modeli tanımlanmalıdır (bkz. <a href="planlayici-parametreleri.html#teb-parametreleri">TEB parametreleri</a>). Yukarıdaki konfigürasyonda bu ayarın değeri kayıtlı değil.</p></div>
+</section>
+
+<section id="ornek-yapilacaklar">
+<h2>Yapılacaklar</h2>
+<p>Bu örneğin tamamlanması için bilinen açık işler:</p>
+<ol class="b">
+<li><strong>Dünyadaki kapı çok dar.</strong> <code>depo.world</code>'deki bölme duvarının kapısı 1,5 m; robotun footprint'i 1,4 m genişliğinde ve <code>inflation_radius</code> 1,1 m. Planlayıcı kapıyı büyük olasılıkla kapalı görür. Dünya daha önceki, 0,8 × 0,6 m'lik küçük bir örnek robota göre çizilmişti; kapı genişletilmeli (ör. 3 m) ve dosyadaki "üst lidar ~1,7 m" yorumu 1,54 m olarak düzeltilmeli.</li>
+<li><strong><code>odom_source</code> argümanı etkisiz.</strong> URDF'e <code>&lt;xacro:arg name="odom_source" default="world"/&gt;</code> eklenip diff drive eklentisine <code>&lt;odometrySource&gt;$(arg odom_source)&lt;/odometrySource&gt;</code> yazılmalı.</li>
+<li><strong>Casterlar zemine tekerleklerle aynı seviyede değiyor.</strong> Daha önceki örnek robotta bu durum tekerlek patinajına yol açmıştı. Burada casterların sürtünmesi 0 olduğu için sorun olmayabilir, ama <code>encoder</code> odometrisiyle ölçülmedi (bkz. madde 2).</li>
+<li><strong>Haritalama doğrulanmadı.</strong> gmapping bu robotla denenmedi; önceki robotla yapılan ilk denemede hızlı dönüşlü bir rotada harita bozuk çıkmıştı.</li>
+<li><strong>AMCL ve move_base denenmedi.</strong> <code>amr_navigation</code> paketi (launch, param dosyaları, harita, RViz ayarı) yazılmalı ve yukarıdaki TEB değerleri simülasyonda sınanmalı.</li>
+<li><strong>move_base toparlanma ayarları eksik.</strong> Yapılandırmada engel katmanının adı <code>obstacle_layer</code>, ama varsayılan toparlanma davranışları yalnızca <code>obstacles</code> adlı katmanı temizler; <code>conservative_reset/layer_names</code> ve <code>aggressive_reset/layer_names</code> eklenmeli. Toparlanma dönüşü de <code>TrajectoryPlannerROS/max_vel_theta</code> varsayılanıyla (1,0 rad/s) yapılır; TEB'deki 0,3 rad/s sınırı ona uygulanmaz. 270 kg'lık robot için bu değer düşürülmeli.</li>
+<li><strong>Docking ve görev katmanı yok.</strong> <code>amr_msgs</code>, <code>amr_docking</code>, <code>amr_mission</code> yazılmadı; dünyada docking için renkli bir şerit de yok.</li>
+<li><strong>TurtleBot3 Waffle bölümü.</strong> Kendi robotunu yazmadan denemek isteyenler için kısa bir TurtleBot3 bölümü planlanıyor.</li>
+</ol>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="referans.html"><small>← Önceki</small>Sözlük ve dosya düzeni</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/mermaid.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

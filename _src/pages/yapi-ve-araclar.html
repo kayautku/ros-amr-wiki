@@ -1,0 +1,170 @@
+<section id="launch">
+<h2>Launch dosyaları</h2>
+<p>Bir robotu çalıştırmak onlarca node ve yüzlerce ayar demektir. <strong>Launch dosyası</strong> (<code>.launch</code>, XML) bunları tek komutla başlatır. Üç temel öğesi var:</p>
+<ul class="b">
+<li><code>&lt;node&gt;</code>: bir program başlat (<code>pkg</code> hangi paket, <code>type</code> hangi çalıştırılabilir, <code>name</code> ROS'taki adı).</li>
+<li><code>&lt;rosparam file="…"/&gt;</code> / <code>&lt;param&gt;</code>: parametre yükle.</li>
+<li><code>&lt;include file="…"/&gt;</code>: başka bir launch dosyasını içeri al. Büyük sistemler böyle katman katman kurulur: bir <code>bringup.launch</code> simülasyonu, navigasyonu ve görev katmanını include eder.</li>
+</ul>
+<p><code>$(find paket)</code> ifadesi bir paketin klasörünü bulur; dosya yollarını elle yazmazsın. <code>&lt;arg&gt;</code> ile dışarıdan seçenek geçirebilirsin (<code>roslaunch myrobot_navigation navigation.launch map:=/tam/yol/baska_harita.yaml</code>). Çalıştırma:</p>
+<pre><code>roslaunch &lt;paket&gt; &lt;dosya.launch&gt;</code></pre>
+<p>Örnek bir navigasyon launch dosyasının iskeleti:</p>
+<pre><code>&lt;launch&gt;
+  &lt;arg name="map" default="$(find myrobot_navigation)/maps/depo.yaml"/&gt;
+  &lt;node pkg="map_server" type="map_server" name="map_server" args="$(arg map)"/&gt;
+  &lt;node pkg="amcl" type="amcl" name="amcl" output="screen"&gt;
+    &lt;rosparam file="$(find myrobot_navigation)/param/amcl.yaml" command="load"/&gt;
+  &lt;/node&gt;
+  &lt;node pkg="move_base" type="move_base" name="move_base" output="screen"&gt;
+    &lt;rosparam file="$(find myrobot_navigation)/param/costmap_common.yaml" command="load" ns="global_costmap"/&gt;
+    &lt;rosparam file="$(find myrobot_navigation)/param/costmap_common.yaml" command="load" ns="local_costmap"/&gt;
+    &lt;rosparam file="$(find myrobot_navigation)/param/global_costmap.yaml" command="load"/&gt;
+    &lt;rosparam file="$(find myrobot_navigation)/param/local_costmap.yaml" command="load"/&gt;
+    &lt;rosparam file="$(find myrobot_navigation)/param/planner.yaml" command="load"/&gt;
+  &lt;/node&gt;
+&lt;/launch&gt;</code></pre>
+<div class="call"><b>Neden costmap ayarı iki kez yükleniyor?</b>
+<p>Ortak ayarlar (footprint, engel kaynağı) hem global hem yerel costmap'e lazımdır. Aynı dosya iki farklı <code>ns</code> (isim alanı) altına yüklenir; bu, ROS'ta sık kullanılan bir kalıptır.</p></div>
+</section>
+
+<section id="catkin">
+<h2>Paket ve catkin</h2>
+<p>ROS'ta kod <strong>paket</strong>lere ayrılır. Bir paket, kökünde <code>package.xml</code> (adı ve bağımlılıkları) ve <code>CMakeLists.txt</code> (nasıl derleneceği) bulunan bir klasördür. Paketler bir <strong>workspace</strong>'in <code>src/</code> klasöründe durur. Derleme aracı <code>catkin</code>'dir.</p>
+<pre class="tree">catkin_ws/
+├── src/       ← senin yazdığın paketler (git'e girer)
+├── build/     ← derleme ara dosyaları (üretilir, silinebilir)
+└── devel/     ← derlenmiş sonuç + setup.bash (üretilir)</pre>
+<h3>Workspace kurma ve derleme</h3>
+<div class="term"><div class="th"><span>Terminal</span><span>ilk kez</span></div><pre>mkdir -p ~/catkin_ws/src
+cd ~/catkin_ws
+catkin_make
+source devel/setup.bash</pre></div>
+<p><code>source devel/setup.bash</code> unutulursa ROS yeni paketi <strong>bulamaz</strong> (<em>Package 'x' not found</em>). Bu, yeni başlayanların en sık takıldığı yerdir. <code>source</code> yalnızca yazıldığı terminal için geçerlidir, yani her yeni terminalde tekrar gerekir. Bunu otomatikleştirmek için satırı, her yeni terminal açıldığında kendiliğinden çalışan <code>~/.bashrc</code> dosyasına ekle:</p>
+<div class="term"><div class="th"><span>Terminal</span><span>bir kez, ilk catkin_make'ten sonra</span></div><pre>echo "source ~/catkin_ws/devel/setup.bash" &gt;&gt; ~/.bashrc
+source ~/.bashrc</pre></div>
+<p><code>&gt;&gt;</code> dosyanın sonuna ekler (tek <code>&gt;</code> dosyanın tamamını siler, dikkat). İkinci satır değişikliği açık olan terminale de uygular. Doğru eklendiğini görmek için <code>tail -n 3 ~/.bashrc</code> yaz; son satırlar şu sırada olmalı:</p>
+<pre><code>source /opt/ros/noetic/setup.bash
+source ~/catkin_ws/devel/setup.bash</code></pre>
+<p>Sıra önemlidir: önce ROS kurulumu, sonra workspace. Workspace, ROS'un üstüne eklenir; ters sırada ROS satırı workspace'i ezer ve paketlerin yine bulunamaz. İlk satır yoksa <a href="#kurulum">Kurulum ve ortam</a> bölümünün 3. adımına bak.</p>
+<div class="call warn"><b>Dikkat edilecekler</b>
+<ul class="b">
+<li>Satırı <strong>ilk <code>catkin_make</code>'ten sonra</strong> ekle. <code>devel/</code> klasörü ancak derlemeyle oluşur; önce eklersen her terminal açılışında "No such file or directory" hatası görürsün.</li>
+<li>Yukarıdaki komut kutusunda <strong>göreli</strong> yol (<code>devel/setup.bash</code>) var; bu yalnızca <code>~/catkin_ws</code> klasöründeyken çalışır. <code>~/.bashrc</code>'ye her zaman <strong>tam</strong> yolu (<code>~/catkin_ws/devel/setup.bash</code>) yaz.</li>
+<li><code>echo</code> komutunu bir kez çalıştır. İki kez çalıştırırsan satır iki kez eklenir; <code>nano ~/.bashrc</code> ile fazlasını silebilirsin.</li>
+<li>Yeni bir paket ekleyip derledikten sonra, açık olan terminallerde bir kez daha <code>source ~/.bashrc</code> yaz ya da yeni terminal aç.</li>
+</ul></div>
+<h3>Yeni paket oluşturma</h3>
+<pre><code>cd ~/catkin_ws/src
+catkin_create_pkg myrobot_docking rospy sensor_msgs geometry_msgs actionlib actionlib_msgs cv_bridge myrobot_msgs</code></pre>
+<h3>Özel mesaj, servis ve action tanımlamak</h3>
+<p>Özel bir <code>.msg</code>, <code>.srv</code> ya da <code>.action</code> dosyası kullanacaksan bunu paketin <code>package.xml</code> ve <code>CMakeLists.txt</code> dosyalarına bildirmen gerekir; yoksa Python'da <code>import</code> hata verir. Örnek (<code>myrobot_msgs</code> paketi):</p>
+<pre><code>&lt;!-- package.xml --&gt;
+&lt;buildtool_depend&gt;catkin&lt;/buildtool_depend&gt;
+&lt;build_depend&gt;message_generation&lt;/build_depend&gt;
+&lt;build_depend&gt;actionlib_msgs&lt;/build_depend&gt;
+&lt;exec_depend&gt;message_runtime&lt;/exec_depend&gt;
+&lt;exec_depend&gt;actionlib_msgs&lt;/exec_depend&gt;</code></pre>
+<pre><code># CMakeLists.txt
+find_package(catkin REQUIRED COMPONENTS rospy message_generation actionlib_msgs)
+
+add_message_files(FILES RobotStatus.msg)                 # msg/ altından
+add_service_files(FILES ComputeEta.srv)                  # srv/ altından
+add_action_files(DIRECTORY action FILES Dock.action)     # action/ altından
+
+generate_messages(DEPENDENCIES actionlib_msgs)
+
+catkin_package(CATKIN_DEPENDS message_runtime actionlib_msgs)</code></pre>
+<p>Bu tanımları kullanan başka bir paket, kendi <code>package.xml</code>'inde <code>myrobot_msgs</code>'i hem <code>build_depend</code> hem <code>exec_depend</code> olarak, <code>CMakeLists.txt</code>'inde de <code>find_package</code> bileşenleri arasında listeler. Python script'lerini kurulum listesine eklemek için: <code>catkin_install_python(PROGRAMS scripts/docking_node.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})</code>.</p>
+<h3>Ne zaman yeniden derlenir?</h3>
+<ul class="b">
+<li><code>.msg</code>, <code>.srv</code>, <code>.action</code> dosyası ekledin/değiştirdin → <strong>derle</strong> (Python modülleri derleme sırasında üretilir).</li>
+<li><code>CMakeLists.txt</code> veya <code>setup.py</code> değişti → derle.</li>
+<li>Sadece <code>.py</code>, <code>.launch</code>, <code>.yaml</code> değişti → derlemeden çalışır (<code>rosrun</code> script'i kaynak klasöründe bulur).</li>
+<li>Python script'i ilk kez ekledin → <code>chmod +x scripts/betik.py</code> ve dosyanın ilk satırı <code>#!/usr/bin/env python3</code> olsun.</li>
+</ul>
+<p>Paketler arası bağımlılık <code>package.xml</code>'de tutulur. Eksik sistem paketlerini otomatik kurmak için: <code>rosdep install --from-paths src --ignore-src -r -y</code>.</p>
+<div class="call"><b>catkin_make mı, catkin build mi?</b>
+<p>İki araç var: <code>catkin_make</code> (ROS ile gelir, tüm paketleri tek CMake işi olarak derler) ve <code>catkin build</code> (<code>python3-catkin-tools</code> ile gelir, paket paket derler). Bir workspace'te ikisini karıştırma; birini seç. Yeni başlayan için <code>catkin_make</code> yeterlidir.</p></div>
+</section>
+
+<section id="tf">
+<h2>TF ve koordinat çerçeveleri</h2>
+<p>Bir robotta her şeyin bir yeri vardır: lidar gövdenin önünde, kamera aşağı bakıyor, gövde de haritanın bir köşesinde. <strong>TF</strong>, bu "çerçeveler" (<em>frame</em>) arasındaki konum farklarını bir <strong>ağaç</strong> olarak tutar; böylece "lidarın gördüğü noktanın haritadaki yeri nedir?" sorusu çözülebilir. Her çerçevenin <strong>tek bir üstü</strong> olmalıdır; iki kaynak aynı çerçeveyi yayınlarsa ağaç bozulur.</p>
+<p>Mobil robotlar için standart isimler <strong>REP-105</strong>'te tanımlıdır:</p>
+<div class="tw"><table>
+<thead><tr><th>Çerçeve</th><th>Anlamı</th><th>Kim yayınlar</th></tr></thead>
+<tbody>
+<tr><td><code>map</code></td><td>Sabit, dünya (harita) çerçevesi. Waypoint'ler burada tanımlı. Kayma yapmaz ama sıçrayabilir.</td><td><code>amcl</code> (<code>map→odom</code>)</td></tr>
+<tr><td><code>odom</code></td><td>Tekerlek sayımıyla ölçülen yol. Pürüzsüz akar ama zamanla kayar.</td><td>robot sürücüsü ya da EKF (<code>odom→base_link</code> veya <code>odom→base_footprint</code>)</td></tr>
+<tr><td><code>base_link</code></td><td>Robotun kendi çerçevesi. Sensörler ona bağlıdır.</td><td><code>robot_state_publisher</code> (sensör çerçevelerine)</td></tr>
+</tbody></table></div>
+<p>REP-105 yalnızca <code>base_link</code>'i tanımlar ve onu robotun gövdesine herhangi bir konumda bağlamana izin verir. Pratikte birçok robot ayrıca yere izdüşümü olan bir <code>base_footprint</code> çerçevesi de kullanır (REP-105'te olmayan ama yaygın bir uygulama): <code>odom→base_footprint→base_link</code>. Bazı robotlar yalnızca birini kullanır; örneğin kök çerçevesi doğrudan <code>base_footprint</code> olan ve gövdeyi bu çerçeveden yukarı kaydıran bir URDF de geçerlidir. Hangi ismi seçtiğin önemli değil; <strong>proje boyunca tutarlı ol</strong> ve costmap/AMCL ayarlarında aynı ismi ver.</p>
+<figure>
+<pre class="mermaid">flowchart TD
+  map["map"] -->|"amcl"| odom["odom"]
+  odom -->|"robot sürücüsü / diff_drive / EKF"| fp["base_footprint"]
+  fp -->|"robot_state_publisher"| base["base_link"]
+  base --> LW["left_wheel"]
+  base --> RW["right_wheel"]
+  base --> LASER["laser"]
+  base --> IMU["imu_link"]
+  base --> CAM["camera_link"]
+  CAM --> OPT["camera_optical_frame"]</pre>
+<figcaption><b>Tipik bir diferansiyel sürüşlü robotun TF ağacı.</b> Üstteki iki bağı lokalizasyon ve odometri kaynağı canlı olarak günceller; alttakiler robotun geometrisidir ve URDF'ten <code>robot_state_publisher</code> ile gelir (tekerlekler <code>/joint_states</code>'e göre döner, sensörler sabittir). Gerçek bir robotun ağacı için: <a href="ornek-robot.html#ornek-urdf">Örnek robot</a>.</figcaption>
+</figure>
+<div class="call"><b>Neden iki katmanlı (map ve odom)?</b>
+<p>Odometri anlık olarak güvenilirdir ama tekerlekler kaydıkça harita ile arasındaki fark büyür. AMCL bu farkı <code>map→odom</code> dönüşümüne yazar. <code>odom</code> pürüzsüz akar (sıçramaz), <code>map</code> ise doğru konumu verir. İkisini zincirlemek her ikisinin de avantajını verir; yerel planlayıcı pürüzsüz <code>odom</code>'a, global plan doğru <code>map</code>'e bakar.</p></div>
+<div class="call try"><b>Dene</b>
+<p>Ağacı çizdir: <code>rosrun tf view_frames</code> (bir <code>frames.pdf</code> üretir). Anlık bir dönüşümü oku: <code>rosrun tf tf_echo map base_footprint</code>. Sık görülen <em>"Could not find a connection between …"</em> hatası, ağaçta bir bağın eksik olduğu anlamına gelir.</p></div>
+<p>Elle dönüşüm yayınlama komutlarının tam söz dizimi ve çerçeve adlandırma standardı (REP-105) için: <a href="ref-tf-actionlib.html#tf-ref">tf / tf2 referansı</a>.</p>
+</section>
+
+<section id="araclar">
+<h2>Komut satırı araçları</h2>
+<p>Bir sistem ayaktayken neler olduğunu görmenin yolu bu komutlardır:</p>
+<div class="tw"><table>
+<thead><tr><th>Komut</th><th>Ne yapar</th></tr></thead>
+<tbody>
+<tr><td><code>rosnode list</code></td><td>Çalışan node'lar</td></tr>
+<tr><td><code>rostopic list</code></td><td>Var olan topic'ler</td></tr>
+<tr><td><code>rostopic echo /amcl_pose</code></td><td>Bir topic'e gelen mesajları ekrana yaz</td></tr>
+<tr><td><code>rostopic hz /scan</code></td><td>Yayın hızı (Hz). Sıfırsa kaynak çalışmıyor demektir</td></tr>
+<tr><td><code>rostopic info /cmd_vel</code></td><td>Kim yazıyor, kim okuyor</td></tr>
+<tr><td><code>rosmsg show geometry_msgs/Twist</code></td><td>Mesaj türünün alanları</td></tr>
+<tr><td><code>rosservice list</code> / <code>call</code></td><td>Servisleri listele / çağır</td></tr>
+<tr><td><code>rosparam list</code> / <code>get</code></td><td>Parametreleri listele / oku</td></tr>
+<tr><td><code>rospack find myrobot_navigation</code></td><td>Bir paketin klasörünü bul (paket görünüyor mu?)</td></tr>
+<tr><td><code>rqt_graph</code></td><td>Node'ları ve topic bağlantılarını görsel çiz</td></tr>
+<tr><td><code>rosrun rqt_image_view rqt_image_view</code></td><td>Kamera görüntüsünü izle</td></tr>
+<tr><td><code>rosrun rqt_reconfigure rqt_reconfigure</code></td><td>Çalışan node'ların ayarını canlı değiştir</td></tr>
+<tr><td><code>roswtf</code></td><td>Ortamda bariz sorun var mı kontrol eder</td></tr>
+</tbody></table></div>
+<div class="call try"><b>Dene</b>
+<p>Bir simülasyon çalışırken <code>rqt_graph</code> aç. Karşına gelen şema <a href="#buyuk-resim">Büyük resim</a>'in gerçek halidir.</p></div>
+</section>
+
+<section id="rviz">
+<h2>RViz ile görselleştirme</h2>
+<p><strong>RViz</strong>, ROS'un görselleştirme aracıdır: sensör verisini, haritayı, TF ağacını ve planları robotun etrafında gösterir. Hata ayıklamanın en hızlı yolu budur. Başlatmak için <code>rosrun rviz rviz</code>, hazır bir ayarla <code>rviz -d dosya.rviz</code>.</p>
+<h3>Temel kullanım</h3>
+<ul class="b">
+<li><strong>Fixed Frame</strong> (sol panelde <em>Global Options</em>): her şeyin çizildiği sabit çerçeve. Haritada çalışırken <code>map</code>, yalnızca robota bakarken <code>odom</code> ya da robotun kök çerçevesi (<code>base_link</code>, <code>base_footprint</code>…). Seçili çerçeve TF ağacında yoksa ekran boş kalır ve "Fixed Frame [x] does not exist" uyarısı çıkar.</li>
+<li><strong>Add</strong> düğmesiyle bir gösterge (display) ekle, topic'ini seç. Göstergelerin solundaki kutuyla açıp kapatabilirsin.</li>
+<li><strong>Ayarı kaydet:</strong> <em>File → Save Config As</em>. Sonraki açılışta <code>rviz -d nav.rviz</code> ile aynı görünümü geri alırsın.</li>
+</ul>
+<div class="tw"><table><thead><tr><th>Gösterge</th><th>Topic / kaynak</th><th>Ne için</th></tr></thead><tbody>
+<tr><td>RobotModel</td><td><code>robot_description</code></td><td>Robotun modeli</td></tr>
+<tr><td>TF</td><td><code>/tf</code></td><td>Çerçeveleri ve bağlarını göster</td></tr>
+<tr><td>LaserScan</td><td><code>/scan</code></td><td>Lidar noktaları (haritaya oturuyor mu?)</td></tr>
+<tr><td>Map</td><td><code>/map</code>, <code>/move_base/global_costmap/costmap</code></td><td>Harita ve costmap</td></tr>
+<tr><td>Path</td><td><code>/move_base/NavfnROS/plan</code> (global), <code>/move_base/&lt;yerel planlayıcı&gt;/local_plan</code></td><td>Planlanan yol (topic adı kullanılan planlayıcı eklentisine göre değişir; <code>rostopic list | grep plan</code>)</td></tr>
+<tr><td>PoseArray</td><td><code>/particlecloud</code></td><td>AMCL parçacıkları</td></tr>
+<tr><td>Image</td><td><code>/camera/image_raw</code></td><td>Kamera görüntüsü</td></tr>
+</tbody></table></div>
+<h3>Üst çubuktaki araçlar</h3>
+<div class="tw"><table><thead><tr><th>Araç</th><th>Ne yapar</th></tr></thead><tbody>
+<tr><td>2D Pose Estimate</td><td>Robotun gerçek konumunu ve yönünü AMCL'e bildirir (<code>/initialpose</code>)</td></tr>
+<tr><td>2D Nav Goal</td><td><code>move_base</code>'e hedef gönderir (<code>/move_base_simple/goal</code>)</td></tr>
+<tr><td>Publish Point</td><td>Tıkladığın noktanın koordinatını yayınlar (<code>/clicked_point</code>); waypoint koordinatı okumak için kullanışlı</td></tr>
+</tbody></table></div>
+</section>

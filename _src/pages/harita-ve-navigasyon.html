@@ -1,0 +1,169 @@
+<section id="slam">
+<h2>Harita ve SLAM</h2>
+<p><strong>SLAM</strong> (Simultaneous Localization and Mapping), robotun bilinmeyen bir ortamda gezerken <em>hem</em> haritayı çıkarıp <em>hem</em> bu harita içinde konumunu bulmasıdır. AMR'ı çalıştırmadan önce ortamın bir kez haritasını çıkarırsın; sonra bu <strong>kayıtlı haritayı</strong> kullanarak gezinirsin.</p>
+<h3>Harita dosyası</h3>
+<p>Harita iki dosyadır: gri tonlu bir resim (<code>.pgm</code>) ve onu tarif eden <code>.yaml</code>. Resimde beyaz = boş, siyah = engel, gri = bilinmiyor.</p>
+<pre><code># depo.yaml (örnek)
+image: depo.pgm
+resolution: 0.05        # 1 piksel = 5 cm
+origin: [-20.0, -15.0, 0.0]   # resmin sol-alt köşesinin map çerçevesindeki yeri
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196</code></pre>
+<p><code>image</code> yolu mutlak ya da <strong>YAML dosyasının konumuna göre</strong> göreli olabilir. Yukarıdaki örnekte göreli yazıldı, böylece klasörü taşıyabilirsin. Ama dikkat: <code>map_saver</code>, YAML'a resmin yolunu <code>-f</code>'ye verdiğin biçimde yazar; aşağıdaki gibi mutlak bir yol verirsen (<code>~/…</code> kabuk tarafından mutlak yola açılır) <code>image</code> satırı da mutlak olur. Haritayı taşıyacaksan o satırı elle <code>image: depo.pgm</code> yap. YAML'ın tüm alanları ve <code>mode</code> (<code>trinary</code>/<code>scale</code>/<code>raw</code>) için: <a href="ref-slam-harita.html#map-server-ref">map_server referansı</a>.</p>
+<p>Çözünürlüğü küçük tutmak (0,05 m) hassasiyet verir ama dosya boyutu ve hesap yükü artar: 200 × 200 m'lik bir alan 0,05 m çözünürlükte 4000 × 4000 piksel, yaklaşık 16 MB eder. <code>gmapping</code> varsayılan olarak tam bu boyutta (−100 … +100 m) bir harita ayırır; küçük bir oda için bile 16 MB'lık dosya çıkar. Alanı <code>xmin</code>, <code>ymin</code>, <code>xmax</code>, <code>ymax</code> parametreleriyle (metre) daraltabilirsin; çözünürlük <code>delta</code> parametresidir.</p>
+<h3>Haritayı çıkarma</h3>
+<div class="term"><div class="th"><span>Terminal 1</span><span>simülasyon (ya da gerçek robotun sürücüleri)</span></div><pre>roslaunch myrobot_gazebo sim.launch</pre></div>
+<div class="term"><div class="th"><span>Terminal 2</span><span>SLAM (gmapping)</span></div><pre>rosrun gmapping slam_gmapping scan:=scan _xmin:=-20 _ymin:=-20 _xmax:=20 _ymax:=20</pre></div>
+<div class="term"><div class="th"><span>Terminal 3</span><span>robotu klavyeyle gezdir</span></div><pre>rosrun teleop_twist_keyboard teleop_twist_keyboard.py</pre></div>
+<div class="term"><div class="th"><span>Terminal 4</span><span>haritayı kaydet</span></div><pre>rosrun map_server map_saver -f ~/catkin_ws/src/myrobot_navigation/maps/depo</pre></div>
+<p>RViz'de <code>/map</code>'i izleyerek haritanın oluşmasını gör. Kayıttan sonra <code>depo.pgm</code> ve <code>depo.yaml</code> oluşur. <code>gmapping</code> harita çıkarırken <code>map→odom</code> dönüşümünü <em>kendisi</em> yayınlar, bu yüzden aynı anda AMCL çalıştırma. gmapping'in <code>base_frame</code> varsayılanı <code>base_link</code>'tir; robotunun kök çerçevesi farklıysa (ör. yalnızca <code>base_footprint</code> varsa) komuta <code>_base_frame:=base_footprint</code> ekle.</p>
+<h3>İyi harita için ipuçları</h3>
+<ul class="b">
+<li><strong>Yavaş sür.</strong> Hızlı dönüşler tarama eşlemesini bozar.</li>
+<li><strong>Döngüyü kapat.</strong> Başladığın yere geri dön; SLAM birikmiş hatayı bu sayede düzeltir.</li>
+<li><strong>Uzun, düz koridorlardan dikkatli geç.</strong> Özelliksiz duvarlar kaymaya yol açar.</li>
+<li><strong>Haritayı gerektiğinde elle düzelt.</strong> <code>.pgm</code> bir resim olduğu için bir resim editöründe gürültüyü silebilir, robotun girmesini istemediğin bölgeye "sanal duvar" (siyah çizgi) çizebilirsin. <strong>Düzenlemeden önce yedek al</strong>: bozuk bir harita tüm navigasyonu bozar.</li>
+</ul>
+<div class="call try"><b>Dene</b>
+<p>Yukarıdaki dört terminalle küçük bir simülasyon odasının haritasını çıkar, kaydet ve <code>eog depo.pgm</code> (ya da herhangi bir resim görüntüleyici) ile aç. Duvarlar siyah çizgi olarak görünmeli.</p></div>
+<p><code>gmapping</code>'in tüm parametreleri ve <code>map_server</code>/<code>map_saver</code>'ın YAML alanları için: <a href="ref-slam-harita.html">gmapping ve map_server referansı</a>.</p>
+</section>
+
+<section id="lokalizasyon">
+<h2>Lokalizasyon (AMCL)</h2>
+<p><strong>AMCL</strong> (Adaptive Monte Carlo Localization), robotun <em>bilinen bir harita üzerindeki</em> konumunu bulur. Yüzlerce olası konumu ("parçacık") simüle eder; her birinde lidar taramasının haritayla ne kadar uyuştuğuna bakar ve tutarlı olanları tutup diğerlerini eler. Sonuç <code>/amcl_pose</code> ile <code>map→odom</code> TF'sidir.</p>
+<h3>Önemli ayarlar</h3>
+<div class="tw"><table><thead><tr><th>Ayar</th><th>Ne anlama gelir</th></tr></thead><tbody>
+<tr><td><code>odom_frame_id</code>, <code>base_frame_id</code>, <code>global_frame_id</code></td><td>TF çerçeve adları (varsayılanlar <code>odom</code>, <code>base_link</code>, <code>map</code>). Robotun kök çerçevesi <code>base_footprint</code> ise <code>base_frame_id</code>'yi buna ayarla; tutarsız olursa AMCL çalışmaz.</td></tr>
+<tr><td>lidar girdisi <em>(parametre değil)</em></td><td>ROS 1 AMCL taramayı her zaman <code>scan</code> topic'inden okur ve bunun için bir <code>scan_topic</code> parametresi <strong>yoktur</strong>; verirsen sessizce yok sayılır. Birleştirilmiş <code>/scan</code>'i kullanırken ad zaten eşleşir; farklı bir ad varsa launch'ta <code>&lt;remap from="scan" to="/baska_topic"/&gt;</code> ile yönlendir.</td></tr>
+<tr><td><code>laser_max_range</code></td><td>Bu mesafeden uzaktaki ışınlar yok sayılır (−1: taramanın kendi <code>range_max</code>'ı). Birleşik taramanın menzili gerçek lidar menzilinden büyükse gerçek menzile eşitle.</td></tr>
+<tr><td><code>initial_pose_x/y/a</code></td><td>Robotun başlangıç konumu (m, m, rad). Robotun gerçekte doğduğu/durduğu yerle <strong>aynı</strong> olmalı.</td></tr>
+<tr><td><code>min_particles</code> / <code>max_particles</code></td><td>Parçacık sayısı aralığı. Daha çok parçacık = daha güvenilir ama daha çok işlemci.</td></tr>
+<tr><td><code>odom_model_type</code></td><td>Sürüş modeli: <code>diff</code> (varsayılan), <code>omni</code>, <code>diff-corrected</code>, <code>omni-corrected</code>. <code>-corrected</code> türleri, eski modellerdeki bir hatanın düzeltilmiş halidir; ancak <code>odom_alpha1…5</code> varsayılanları eski modellere göre ayarlıdır ve düzeltilmiş modellerde çok daha küçük değerler gerekebilir.</td></tr>
+<tr><td><code>transform_tolerance</code></td><td>TF zaman toleransı (sn). Çok küçük olursa "extrapolation" uyarıları çıkar.</td></tr>
+</tbody></table></div>
+<p>AMCL, bir lidar çerçevesinden ilk taramayı aldığında o çerçevenin robot gövdesine göre konumunu okuyup <strong>sonsuza dek saklar</strong>; yani lidar gövdeye göre hareket edemez (döner bir platforma takılı lidar AMCL için uygun değildir).</p>
+<h3>Robota nerede olduğunu söylemek</h3>
+<p>AMCL, başlangıçta robotun yaklaşık nerede olduğunu bilmek ister. Başlangıç konumu yanlışsa parçacıklar yanlış yerde toplanır ve lidar duvara oturmaz. RViz'de <strong>2D Pose Estimate</strong> aracıyla haritada robotun gerçek konumunu ve yönünü tıklayıp sürükleyerek gösterirsin. Ardından robotu biraz döndürüp gezdirdiğinde parçacık bulutu (<code>/particlecloud</code>) küçülmelidir.</p>
+<div class="call try"><b>Dene: AMCL iyi çalışıyor mu?</b>
+<p>RViz'de <code>PoseArray</code> ekle, topic <code>/particlecloud</code>. Bulut robotun etrafında sıkı bir topaksa lokalizasyon iyidir; geniş ve dağınıksa (ya da harita ile lidar çizgileri örtüşmüyorsa) sorun vardır.</p></div>
+<p>AMCL'in <strong>tüm parametreleri</strong> (52 parametre: parçacık filtresi, hareket ve lazer modeli ayrıntıları dahil) için: <a href="ref-amcl-move-base.html#amcl-ref">AMCL referansı</a>.</p>
+</section>
+
+<section id="navigasyon">
+<h2>Navigasyon (move_base)</h2>
+<p>"Robotu şu koordinata götür" komutunun arkasında <code>move_base</code> çalışır. Bir <strong>action server</strong>'dır: bir hedef alır, iki planlayıcı ve iki costmap ile yolu bulup <code>/cmd_vel</code> üretir.</p>
+<figure>
+<pre class="mermaid">flowchart LR
+  G["hedef (goal)"] --> GP["global planlayıcı"]
+  GC["global costmap"] --> GP
+  GP -->|"global plan"| LP["yerel planlayıcı"]
+  LC["yerel costmap"] --> LP
+  LP -->|"/cmd_vel"| R["robot"]
+  LP -.->|"sıkıştı"| REC["toparlanma davranışları"]
+  REC -.-> GP</pre>
+<figcaption><b>move_base'in iç yapısı.</b> Global planlayıcı haritada kaba bir yol çizer; yerel planlayıcı bu yolu izlerken anlık engellere göre pürüzsüz hız komutu üretir. İlerleyemezse toparlanma davranışları (costmap temizleme, yerinde dönme) devreye girer.</figcaption>
+</figure>
+<ul class="b">
+<li><strong>Global planlayıcı</strong> (<code>navfn</code> ya da <code>global_planner</code>): başlangıçtan hedefe kaba yolu bulur; <code>planner_frequency</code> sıklığında yenilenir (varsayılan 0: yalnızca yeni hedefte ya da yerel planlayıcı tıkandığında).</li>
+<li><strong>Yerel planlayıcı</strong> (<code>dwa_local_planner</code> ya da <code>teb_local_planner</code>): yolu izlerken robotun kinematiğine ve yakın engellere göre pürüzsüz hız komutu üretir; saniyede 10–20 kez çalışır.</li>
+<li><strong>Costmap</strong> ("maliyet haritası"): her hücre için "buradan geçmek ne kadar tehlikeli" değerini tutar. Global costmap tüm haritayı, yerel costmap robotun etrafındaki kayan pencereyi kapsar. Engellerin çevresi <em>şişirilir</em> (inflation) ki robot duvara sürtmesin.</li>
+</ul>
+
+<h3>DWA mı, TEB mi?</h3>
+<div class="tw"><table><thead><tr><th></th><th>DWA</th><th>TEB</th></tr></thead><tbody>
+<tr><td>Yaklaşım</td><td>Kısa süre için hız adayları dener, en iyisini seçer</td><td>Zaman-optimal bir yörünge optimizasyonu yapar</td></tr>
+<tr><td>Kurulum</td><td>Basit, az ayar</td><td>Daha çok ayar, daha akıcı hareket</td></tr>
+<tr><td>Uygun</td><td>Küçük robotlar, ilk deneme</td><td>Büyük robotlar, dar manevralar, akıcı yol</td></tr>
+</tbody></table></div>
+<p>İlk denemede DWA ile başla, robotun hareketi yeterince akıcı değilse TEB'e geç. <code>move_base</code>'e hangi planlayıcının kullanılacağını <code>base_local_planner</code> parametresiyle söylersin (ör. <code>teb_local_planner/TebLocalPlannerROS</code>). Planlayıcıların <strong>tüm parametreleri</strong> (varsayılanlar, aralıklar, açıklamalar) için <a href="#dwa-parametreleri">DWA parametreleri</a> ve <a href="#teb-parametreleri">TEB parametreleri</a> bölümlerine bak. <code>move_base</code>'in kendi parametreleri (toparlanma davranışları dahil) ve <code>costmap_2d</code>'nin tüm katmanları için: <a href="ref-amcl-move-base.html#move-base-ref">move_base referansı</a>, <a href="ref-costmap.html">costmap_2d referansı</a>.</p>
+
+<h3>Temel ayarlar</h3>
+<p>Navigasyonun davranışını en çok etkileyen ayarlar. Değerler robotun boyutuna, hızına ve ortama bağlıdır; aşağıdaki sütun, küçük–orta boy (≈0,5 m) bir iç mekân robotu için makul bir <em>başlangıç noktasıdır</em>, doğru değer değildir. Her parametrenin gerçek varsayılanı ve aralığı referans sayfalarında yazar.</p>
+<div class="tw"><table>
+<thead><tr><th>Dosya</th><th>Ayar</th><th class="n">Başlangıç</th><th>Ne anlama gelir / ipucu</th></tr></thead>
+<tbody>
+<tr><td><code>costmap_common</code></td><td><code>footprint</code> ya da <code>robot_radius</code></td><td class="n">gövde + 2–5 cm</td><td>Robotun gövde çokgeni (köşe koordinatları, robot merkezine göre) ya da dairesel robotlar için yarıçapı. Gerçek gövdeden biraz büyük tut (güvenlik payı); çok büyükse robot dar kapıdan geçemez, küçükse duvara sürter.</td></tr>
+<tr><td></td><td><code>inflation_radius</code></td><td class="n">0,3–0,6 m</td><td>Engellerin çevresine ceza yayılan mesafe. Robotun iç yarıçapından büyük olmalı; çok büyük olursa dar geçitler "kapalı" görünür.</td></tr>
+<tr><td></td><td><code>cost_scaling_factor</code></td><td class="n">3–10</td><td>Maliyetin engelden uzaklaştıkça ne hızlı düştüğü. Büyük değer: robot duvara yakın gider; küçük değer: geniş bir "korku alanı".</td></tr>
+<tr><td></td><td><code>obstacle_range</code> / <code>raytrace_range</code></td><td class="n">2,5 / 3,0 m</td><td>Lidarın engel işaretlediği ve boş alanı temizlediği mesafeler. Lidarın güvenilir menzilini aşmamalı.</td></tr>
+<tr><td><code>global_costmap</code></td><td><code>plugins</code></td><td class="n">static + obstacle + inflation</td><td><code>static_layer</code> haritayı <code>map_server</code>'dan alır, <code>obstacle_layer</code> lidar engellerini işler, <code>inflation_layer</code> engelleri şişirir.</td></tr>
+<tr><td><code>local_costmap</code></td><td><code>width</code> / <code>height</code> / <code>resolution</code></td><td class="n">4–6 m, 0,05 m</td><td>Robotla birlikte hareket eden (<code>rolling_window: true</code>) yerel harita. Yerel planlayıcının ufkunu kapsayacak kadar geniş olmalı; TEB ve hızlı robotlar daha geniş pencere ister.</td></tr>
+<tr><td><code>move_base</code></td><td><code>controller_frequency</code></td><td class="n">10–20 Hz</td><td>Yerel planlayıcının hız komutu üretme sıklığı. İşlemci yetmezse "Control loop missed its desired rate" uyarısı çıkar.</td></tr>
+<tr><td></td><td><code>planner_frequency</code></td><td class="n">0–2 Hz</td><td>Global planın yenilenme sıklığı. 0 ise yalnızca yeni bir hedef geldiğinde ya da yerel planlayıcı yolun tıkandığını bildirdiğinde çalışır.</td></tr>
+<tr><td>Yerel planlayıcı</td><td><code>max_vel_x</code> / <code>max_vel_theta</code></td><td class="n">0,2–0,5 m/s / 0,5–1,0 rad/s</td><td>En yüksek hızlar. Önce düşük başla, güvenli olunca artır. Ağır ya da yük taşıyan robotta dönüş hızını düşük tut.</td></tr>
+<tr><td></td><td><code>acc_lim_x</code> / <code>acc_lim_theta</code></td><td class="n">robotun gerçek ivmesi</td><td>Robotun fiziksel olarak yapabildiğinden büyük verilirse planlanan hareket uygulanamaz ve robot sarsılır.</td></tr>
+<tr><td></td><td><code>xy_goal_tolerance</code> / <code>yaw_goal_tolerance</code></td><td class="n">0,1–0,2 m / 0,1–0,2 rad</td><td>Hedefe bu hassasiyetle varınca "vardı" sayılır. Çok küçük olursa robot hedefte titreyip durur.</td></tr>
+</tbody></table></div>
+<div class="call warn"><b>TEB kullanıyorsan footprint_model'i ayarla</b>
+<p>TEB, yörüngeyi optimize ederken costmap'in <code>footprint</code>'ini değil kendi <code>footprint_model</code>'ini kullanır ve bunun varsayılanı <code>point</code>'tir (robot bir nokta gibi planlanır, engellerden yalnızca <code>min_obstacle_dist</code> kadar uzak durur). Dikdörtgen ya da büyük bir robotta <code>polygon</code> veya <code>line</code> modelini tanımla: <a href="planlayici-parametreleri.html#teb-parametreleri">TEB parametreleri</a>.</p></div>
+
+<h3>Örnek costmap ve move_base dosyaları</h3>
+<p>Yukarıdaki ayarların dosyalara nasıl yerleştiği (0,40 × 0,30 m'lik bir robot için). <code>costmap_common.yaml</code>, launch'ta hem <code>global_costmap</code> hem <code>local_costmap</code> isim alanına yüklenir (bkz. <a href="#launch">Launch dosyaları</a>):</p>
+<pre><code># param/costmap_common.yaml
+footprint: [[0.22, 0.17], [0.22, -0.17], [-0.22, -0.17], [-0.22, 0.17]]
+robot_base_frame: base_footprint
+transform_tolerance: 0.2
+
+obstacle_layer:
+  observation_sources: scan
+  scan: {topic: /scan, data_type: LaserScan, marking: true, clearing: true,
+         obstacle_range: 2.5, raytrace_range: 3.0}
+
+inflation_layer:
+  inflation_radius: 0.45
+  cost_scaling_factor: 5.0</code></pre>
+<pre><code># param/global_costmap.yaml
+global_costmap:
+  global_frame: map
+  update_frequency: 2.0
+  plugins:
+    - {name: static_layer,    type: "costmap_2d::StaticLayer"}
+    - {name: obstacle_layer,  type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+
+# param/local_costmap.yaml
+local_costmap:
+  global_frame: odom
+  robot_base_frame: base_footprint
+  update_frequency: 10.0
+  publish_frequency: 10.0
+  rolling_window: true
+  width: 5.0
+  height: 5.0
+  resolution: 0.05
+  plugins:
+    - {name: obstacle_layer,  type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+
+# param/planner.yaml   (move_base'in kendi ayarları + yerel planlayıcı seçimi)
+base_local_planner: "dwa_local_planner/DWAPlannerROS"
+controller_frequency: 10.0
+planner_frequency: 1.0
+planner_patience: 5.0
+controller_patience: 15.0
+# varsayılan toparlanma davranışları yalnızca adı "obstacles" olan katmanı temizler:
+conservative_reset: {layer_names: [obstacle_layer]}
+aggressive_reset:   {layer_names: [obstacle_layer]}
+# toparlanma dönüşü, yerel planlayıcı ne olursa olsun bu isim alanından okunur:
+TrajectoryPlannerROS: {max_vel_theta: 1.0, min_in_place_vel_theta: 0.4, acc_lim_theta: 3.2}</code></pre>
+<p>Katman adları (<code>obstacle_layer</code>, <code>inflation_layer</code>) serbestçe seçilir; YAML'daki alt anahtar adı <code>plugins</code> listesindeki <code>name</code> ile aynı olmalıdır. Ancak iki gizli bağımlılık var:</p>
+<ul class="b">
+<li><strong>Costmap temizleme:</strong> <code>move_base</code>'in varsayılan toparlanma davranışları yalnızca adı birebir <code>obstacles</code> olan katmanı temizler. Engel katmanına başka bir ad verdiysen (yukarıdaki gibi) <code>layer_names</code>'i ayrıca yazmazsan toparlanma costmap'i <strong>hiç temizlemez</strong>.</li>
+<li><strong>Toparlanma dönüşü:</strong> yerinde dönme davranışı hız ve ivme sınırlarını DWA ya da TEB ayarlarından değil, <code>TrajectoryPlannerROS</code> isim alanından okur (varsayılan 1,0 rad/s). Ağır bir robotta bu değerleri düşür.</li>
+</ul>
+<p>Ayrıntı: <a href="ref-amcl-move-base.html#move-base-ref">move_base referansı → Toparlanma davranışları</a>.</p>
+<p> Yerel planlayıcının kendi parametreleri (<code>DWAPlannerROS:</code> ya da <code>TebLocalPlannerROS:</code>) ayrı bir YAML'da tutulur; bkz. <a href="#dwa-parametreleri">DWA</a> ve <a href="#teb-parametreleri">TEB parametreleri</a>.</p>
+
+<h3>Ayar yaparken izlenecek yol</h3>
+<ol class="b">
+<li><strong>Önce lokalizasyon.</strong> AMCL iyi değilse hiçbir planlayıcı ayarı işe yaramaz.</li>
+<li><strong>Sonra footprint ve inflation.</strong> Robot dar yerlerden geçemiyorsa çoğunlukla sebep budur.</li>
+<li><strong>Sonra hız ve ivme.</strong> Düşük hızla başla, sonra artır.</li>
+<li><strong>Her seferinde tek ayar değiştir.</strong> <code>rqt_reconfigure</code> ile çalışırken değiştirip sonucu hemen görebilirsin; iyi değeri dosyaya sonra yaz.</li>
+<li><strong>RViz'de costmap ve planı izle.</strong> <code>Map</code> ile <code>/move_base/global_costmap/costmap</code>, <code>Path</code> ile global planı (ör. <code>/move_base/NavfnROS/plan</code>) ve yerel planı (<code>/move_base/&lt;yerel planlayıcı&gt;/local_plan</code>) ekle.</li>
+</ol>
+<div class="call try"><b>Dene</b>
+<p>Simülasyon + navigasyon açıkken RViz'de robotun gerçek yerini "2D Pose Estimate" ile göster, sonra "2D Nav Goal" ile bir noktaya tıkla. Planlanan yol çizgi olarak görünür ve robot hareket eder.</p></div>
+</section>

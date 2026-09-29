@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>İletişim: topic, servis, action · ROS AMR Wiki</title>
+<meta name="description" content="Bir topic, adı olan bir veri kanalıdır. Kanala yazana publisher, dinleyene subscriber denir; birbirlerini tanımazlar. Lidar sürücüsü /scan&#x27;e yazar, hangi node&#x27;ların dinle">
+<link rel="icon" href="data:,">
+<script>try{var t=localStorage.getItem('rw-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="shell">
+<aside class="side"><details id="navd" open><summary>ROS AMR Wiki</summary><p class="brand"><a href="index.html">ROS AMR Wiki</a><small>ROS 1 Noetic · Gazebo · Navigation</small></p><div class="searchbox"><input class="find" id="find" type="search" placeholder="Sitede ara…  ( / )" aria-label="Sitede ara" autocomplete="off"><ul class="results" id="results" hidden></ul></div><nav id="nav" aria-label="Sayfalar"><div class="grp"><h2>Başlangıç</h2><ul><li class="pg"><a href="index.html">Genel bakış ve büyük resim</a></li><li class="pg"><a href="yol-haritasi.html">Öğrenme yol haritası</a></li><li class="pg"><a href="zihin-haritasi.html">Zihin haritası</a></li></ul></div><div class="grp"><h2>A · ROS temelleri</h2><ul><li class="pg"><a href="baslarken.html">Başlarken</a></li><li class="pg cur"><a href="iletisim.html" aria-current="page">İletişim</a><ul class="sub"><li><a href="#topic">Topic ve mesaj</a></li><li><a href="#servis">Servis</a></li><li><a href="#action">Action</a></li><li><a href="#param">Parametre sunucusu</a></li></ul></li><li class="pg"><a href="yapi-ve-araclar.html">Yapı ve araçlar</a></li></ul></div><div class="grp"><h2>B · AMR yığını</h2><ul><li class="pg"><a href="robot-ve-simulasyon.html">Robot ve simülasyon</a></li><li class="pg"><a href="harita-ve-navigasyon.html">Harita ve navigasyon</a></li><li class="pg"><a href="gorev-ve-docking.html">Görev ve docking</a></li><li class="pg"><a href="smach.html">Durum makinesi (SMACH)</a></li></ul></div><div class="grp"><h2>C · Paket referansı</h2><ul><li class="pg"><a href="ref-amcl-move-base.html">AMCL ve move_base</a></li><li class="pg"><a href="ref-costmap.html">costmap_2d</a></li><li class="pg"><a href="planlayici-parametreleri.html">DWA ve TEB</a></li><li class="pg"><a href="ref-slam-harita.html">gmapping ve map_server</a></li><li class="pg"><a href="ref-tf-actionlib.html">tf ve actionlib</a></li><li class="pg"><a href="ref-yardimci-paketler.html">twist_mux ve ira_laser_tools</a></li></ul></div><div class="grp"><h2>D · Pratik</h2><ul><li class="pg"><a href="pratik.html">Pratik</a></li><li class="pg"><a href="referans.html">Sözlük ve dosya düzeni</a></li></ul></div><div class="grp"><h2>E · Örnek (geliştiriliyor)</h2><ul><li class="pg"><a href="ornek-robot.html">Örnek robot</a></li></ul></div></nav><p class="foot">Hedef sürüm: ROS 1 Noetic (Ubuntu 20.04)<br><button type="button" class="themebtn" id="themebtn">Tema: Sistem</button></p></details></aside>
+<main>
+<div class="doc">
+<header class="pagehead"><p class="eyebrow">A · ROS temelleri</p><h1>İletişim: topic, servis, action</h1></header>
+<section id="topic">
+<h2>Topic ve mesaj</h2>
+<p>Bir <strong>topic</strong>, adı olan bir veri kanalıdır. Kanala yazana <em>publisher</em>, dinleyene <em>subscriber</em> denir; birbirlerini tanımazlar. Lidar sürücüsü <code>/scan</code>'e yazar, hangi node'ların dinlediğini bilmez. Bu gevşek bağlılık, bir bileşeni (örneğin planlayıcıyı) diğerlerini bozmadan değiştirebilmeni sağlar.</p>
+<p>Kanaldan akan veriye <strong>mesaj</strong> denir ve her topic'in sabit bir <em>mesaj türü</em> vardır. Tür, alanları tanımlayan küçük bir dosyadır. Özel bir mesaj tanımı (örnek):</p>
+<pre><code># myrobot_msgs/msg/RobotStatus.msg
+string state             # "IDLE", "NAVIGATING", "DOCKING"
+float32 battery_percent</code></pre>
+
+<figure>
+<div class="fig-in"><svg class="dgm" viewBox="0 0 760 200" role="img" aria-label="Yayıncı node chatter topic'ine yazar, abone node dinler. Alttaki satırda istemci servise istek gönderir, servis cevap döner." style="min-width:600px">
+<defs>
+<marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="mk"/></marker>
+</defs>
+<rect class="node" x="20" y="20" width="170" height="46"/><text class="b" x="105" y="48" text-anchor="middle">talker (publisher)</text>
+<ellipse class="topic" cx="380" cy="43" rx="100" ry="24"/><text class="m" x="380" y="47" text-anchor="middle">/chatter</text>
+<rect class="node" x="570" y="20" width="170" height="46"/><text class="b" x="655" y="48" text-anchor="middle">listener (subscriber)</text>
+<line class="ln" x1="190" y1="43" x2="280" y2="43" marker-end="url(#ah2)"/>
+<line class="ln" x1="480" y1="43" x2="570" y2="43" marker-end="url(#ah2)"/>
+<text class="s" x="235" y="34" text-anchor="middle">publish</text>
+<text class="s" x="525" y="34" text-anchor="middle">callback</text>
+
+<rect class="node" x="20" y="115" width="170" height="70"/><text class="b" x="105" y="155" text-anchor="middle">istemci</text>
+<rect class="node" x="570" y="115" width="170" height="70"/><text class="b" x="655" y="155" text-anchor="middle">servis sunucusu</text>
+<line class="ln" x1="190" y1="138" x2="570" y2="138" marker-end="url(#ah2)"/>
+<line class="ln" x1="570" y1="166" x2="190" y2="166" marker-end="url(#ah2)"/>
+<text class="s" x="380" y="131" text-anchor="middle">istek</text>
+<text class="m" x="380" y="156" text-anchor="middle">/compute_eta</text>
+<text class="s" x="380" y="182" text-anchor="middle">cevap</text>
+</svg></div>
+<figcaption><b>Topic ile servisin farkı.</b> Üstte: yayıncı kimin dinlediğini bilmeden yazar (bire çok, tek yönlü). Altta: istemci bir soru sorar ve cevap gelene kadar bekler (bire bir, çift yönlü).</figcaption>
+</figure>
+
+<h3>Python'da publisher ve subscriber</h3>
+<pre><code>#!/usr/bin/env python3
+import rospy
+from std_msgs.msg import String
+
+rospy.init_node("talker")
+pub = rospy.Publisher("chatter", String, queue_size=10)
+rate = rospy.Rate(1)                  # 1 Hz
+while not rospy.is_shutdown():
+    pub.publish("merhaba")
+    rate.sleep()</code></pre>
+<pre><code>#!/usr/bin/env python3
+import rospy
+from std_msgs.msg import String
+
+def callback(msg):
+    rospy.loginfo("geldi: %s", msg.data)
+
+rospy.init_node("listener")
+rospy.Subscriber("chatter", String, callback)
+rospy.spin()                          # callback'leri bekle</code></pre>
+
+<h3>Bir AMR'daki önemli topic'ler</h3>
+<div class="tw"><table>
+<thead><tr><th>Topic</th><th>Mesaj türü</th><th>Kim yazar → kim okur</th></tr></thead>
+<tbody>
+<tr><td><code>/scan</code></td><td><code>sensor_msgs/LaserScan</code></td><td>lidar sürücüsü (ya da birden çok lidar varsa birleştirici) → <code>amcl</code>, <code>move_base</code>, <code>gmapping</code></td></tr>
+<tr><td><code>/map</code></td><td><code>nav_msgs/OccupancyGrid</code></td><td><code>map_server</code> → <code>amcl</code>, <code>move_base</code></td></tr>
+<tr><td><code>/odom</code></td><td><code>nav_msgs/Odometry</code></td><td>robot sürücüsü → <code>move_base</code></td></tr>
+<tr><td><code>/amcl_pose</code></td><td><code>geometry_msgs/PoseWithCovarianceStamped</code></td><td><code>amcl</code> → görev katmanı</td></tr>
+<tr><td><code>/cmd_vel</code></td><td><code>geometry_msgs/Twist</code></td><td><code>move_base</code>, docking → robot sürücüsü</td></tr>
+<tr><td><code>/camera/image_raw</code></td><td><code>sensor_msgs/Image</code></td><td>kamera → docking, görüntü işleme</td></tr>
+<tr><td><code>/tf</code>, <code>/tf_static</code></td><td><code>tf2_msgs/TFMessage</code></td><td>birçok node → birçok node (bkz. <a href="yapi-ve-araclar.html#tf">TF</a>)</td></tr>
+</tbody></table></div>
+
+<h3><code>/cmd_vel</code> ve Twist</h3>
+<p>Robotu sürmenin standart yolu <code>/cmd_vel</code>'e bir <code>Twist</code> yazmaktır. Diferansiyel sürüşlü bir robot iki alanı kullanır:</p>
+<ul class="b">
+<li><code>linear.x</code>: ileri hız, m/s (negatif = geri)</li>
+<li><code>angular.z</code>: dönüş hızı, rad/s (pozitif = <strong>saat yönünün tersi</strong>)</li>
+</ul>
+<p>Diferansiyel sürüşlü robot yana kayamaz, o yüzden <code>linear.y</code> hep 0'dır. Sürücü katmanı (Gazebo'daki <code>diff_drive</code> eklentisi ya da gerçek robotun sürücüsü) bu ikiliyi sol/sağ tekerlek hızına çevirir. Birimler (metre, saniye, radyan) REP-103 ile standarttır: <strong>dereceyi hiçbir ROS mesajında kullanma</strong>.</p>
+<div class="call try"><b>Dene</b>
+<p>Bir simülasyon robotu açıkken (ya da <code>turtlesim</code>'de <code>/turtle1/cmd_vel</code> ile) ileri gönder:</p>
+<pre><code>rostopic pub -r 10 /cmd_vel geometry_msgs/Twist "linear: {x: 0.2, y: 0, z: 0}
+angular: {x: 0, y: 0, z: 0}"</code></pre>
+<p><kbd>Ctrl</kbd>+<kbd>C</kbd> ile durdur. Robot kayabilir; kesin durması için <code>x: 0</code> gönder.</p></div>
+</section>
+
+<section id="servis">
+<h2>Servis</h2>
+<p>Servis, istek-cevap çiftidir: istemci soruyu sorar, cevap gelene kadar bekler. Kısa, hemen biten işler için uygundur (bir ayarı değiştir, bir haritayı sıfırla, bir değer hesapla). Tanım dosyası iki parçalıdır; <code>---</code> isteği cevaptan ayırır:</p>
+<pre><code># myrobot_msgs/srv/ComputeEta.srv
+float64 distance      # metre
+---
+float64 seconds       # tahmini süre</code></pre>
+<p>Sunucu tarafı (Python):</p>
+<pre><code>from myrobot_msgs.srv import ComputeEta, ComputeEtaResponse
+
+def handle(req):
+    return ComputeEtaResponse(seconds=req.distance / 0.5)   # 0,5 m/s varsayımı
+
+rospy.init_node("eta_server")
+rospy.Service("compute_eta", ComputeEta, handle)
+rospy.spin()</code></pre>
+<p>Bir AMR'da gördüğün hazır servis: <code>/move_base/clear_costmaps</code> (costmap'teki eski engelleri temizler).</p>
+<div class="call try"><b>Dene</b>
+<p>Sunucu çalışırken: <code>rosservice call /compute_eta 10</code>. Çıktıda <code>seconds: 20.0</code> görürsün.</p></div>
+</section>
+
+<section id="action">
+<h2>Action</h2>
+<p>Bir robotun "şu noktaya git" işi saniyeler ya da dakikalar sürer. Servis bu kadar beklemez, topic ise sonucu geri bildirmez. <strong>Action</strong> ikisinin karışımıdır: istemci bir <em>goal</em> gönderir, sunucu ilerleme (<em>feedback</em>) yollar, iş bitince bir <em>result</em> döner ve istemci işi istediği an iptal edebilir.</p>
+<figure>
+<pre class="mermaid">sequenceDiagram
+  participant C as İstemci (mission_node)
+  participant S as Sunucu (docking_node)
+  C->>S: goal (DockGoal)
+  S-->>C: durum: ACTIVE
+  Note over S: şeridi takip et
+  S-->>C: result (success, message)
+  Note over C,S: İstemci beklerken goal'u iptal edebilir (preempt)</pre>
+<figcaption><b>Bir action'ın ömrü.</b> Sunucu istenirse arada <code>feedback</code> da gönderir (örneğin "hedefe kalan mesafe").</figcaption>
+</figure>
+<p>Tanım dosyası üç parçadır (goal / result / feedback):</p>
+<pre><code># myrobot_msgs/action/Dock.action
+# Goal: yanaşmayı başlat (parametreler node'un kendi ayarlarından okunur)
+---
+# Result
+bool success
+string message
+---
+# Feedback
+float32 distance_remaining</code></pre>
+<p>Bir AMR'da iki temel action var: navigasyonun <code>move_base</code>'i (hazır; türü <code>move_base_msgs/MoveBaseAction</code>) ve senin yazacağın <code>dock</code> gibi görev action'ları.</p>
+<p>Python'da istemci tarafı:</p>
+<pre><code>client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+client.wait_for_server()
+client.send_goal(goal)
+client.wait_for_result(rospy.Duration(60))   # en fazla 60 sn bekle
+if client.get_state() == actionlib.GoalStatus.SUCCEEDED: ...
+client.cancel_goal()                         # vazgeç</code></pre>
+<div class="call try"><b>Dene</b>
+<p>Hazır bir action istemci arayüzü: <code>rosrun actionlib_tools axclient.py /dock myrobot_msgs/DockAction</code>. Küçük bir pencere açılır, "SEND GOAL" ile goal gönderir, sonucu izlersin. Sunucunun çalışıyor olması gerekir. <code>axclient.py</code>, Noetic'te <code>actionlib</code> değil <code>actionlib_tools</code> paketindedir (<code>sudo apt install ros-noetic-actionlib-tools</code>) ve bir pencere açtığı için grafik ortam ister.</p></div>
+<p>Goal'un alabileceği <strong>tüm durumlar</strong> ve <code>SimpleActionClient</code>'in tüm metotları için: <a href="ref-tf-actionlib.html#actionlib-ref">actionlib referansı</a>.</p>
+</section>
+
+<section id="param">
+<h2>Parametre sunucusu</h2>
+<p>Master, node'ların ortak kullandığı bir <strong>ayar defteri</strong> de tutar. Ayarlar <code>/isim/alt_isim</code> biçiminde yol adlarıyla saklanır. Kodu değiştirmeden davranışı değiştirmenin yolu budur.</p>
+<p>Python'da <code>~</code> işareti "bu node'un özel alanı" demektir. <code>docking_node</code> adlı bir node'da:</p>
+<pre><code>rospy.get_param("~kp", 0.006)   # /docking_node/kp okunur, yoksa 0.006</code></pre>
+<p>Parametreleri genelde bir YAML dosyasından launch ile yüklersin:</p>
+<pre><code># myrobot_docking/config/docking.yaml
+hsv_lower: [100, 60, 40]
+hsv_upper: [140, 255, 100]
+forward_speed: 0.15
+kp: 0.006</code></pre>
+<div class="call try"><b>Dene</b>
+<p>Çalışırken bir değeri oku: <code>rosparam get /move_base/controller_frequency</code>. Tümünü listelemek için <code>rosparam list</code>.</p></div>
+<div class="call warn"><b>Dikkat</b>
+<p>Node kodu parametreyi genellikle başlangıçta bir kez okur. Çalışırken <code>rosparam set</code> yapmak, node yeniden başlatılmadan etki etmeyebilir. <code>dynamic_reconfigure</code> destekleyen node'larda (<code>move_base</code>'in birçok ayarı gibi) ise çalışırken değiştirebilirsin: <code>rosrun rqt_reconfigure rqt_reconfigure</code>.</p></div>
+</section>
+
+<nav class="pager" aria-label="Sayfa gezintisi"><a class="prev" href="baslarken.html"><small>← Önceki</small>Başlarken</a><a class="next" href="yapi-ve-araclar.html"><small>Sonraki →</small>Yapı ve araçlar</a></nav>
+</div>
+</main>
+</div>
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/mermaid.min.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>
